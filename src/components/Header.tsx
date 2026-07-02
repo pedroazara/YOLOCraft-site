@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActiveTab } from '../types';
 import { Compass, Skull, HelpCircle, Menu, X } from 'lucide-react';
 import YolocraftLogo from './YolocraftLogo';
@@ -16,9 +16,40 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // If mobile menu is open, keep the header visible
+      if (isMobileMenuOpen) {
+        setIsVisible(true);
+        setLastScrollY(currentScrollY);
+        return;
+      }
+
+      // Hide when scrolling down past 80px, show when scrolling up
+      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [lastScrollY, isMobileMenuOpen]);
 
   return (
-    <header className="bg-[#111111] border-b border-[#333333] sticky top-0 z-50 w-full transition-colors duration-200">
+    <header className={`bg-[#111111] border-b border-[#333333] sticky top-0 z-50 w-full transition-all duration-300 ease-in-out transform ${
+      isVisible ? 'translate-y-0' : '-translate-y-full'
+    }`}>
       <div className="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto relative">
         {/* Brand Logo with modern Geometric look */}
         <div 
