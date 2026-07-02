@@ -18,35 +18,35 @@ const getTemperamentDetails = (type: string) => {
         label: 'Pacífico (Passivo)',
         desc: 'Não ataca o jogador sob nenhuma circunstância.',
         colorClass: 'text-green-400 bg-green-950/20 border-green-500/30',
-        icon: '❤️'
+        icon: Heart
       };
     case 'Neutro':
       return {
         label: 'Neutro',
         desc: 'Ataca apenas se for provocado ou atacado primeiro.',
         colorClass: 'text-amber-400 bg-amber-950/20 border-amber-500/30',
-        icon: '🛡️'
+        icon: Shield
       };
     case 'Hostil':
       return {
         label: 'Hostil',
         desc: 'Ataca o jogador imediatamente ao avistá-lo.',
         colorClass: 'text-red-400 bg-red-950/20 border-red-500/30',
-        icon: '💀'
+        icon: Swords
       };
     case 'Ataque à Distância':
       return {
         label: 'Hostil (À Distância)',
         desc: 'Dispara projéteis contra o jogador à distância.',
         colorClass: 'text-orange-400 bg-orange-950/20 border-orange-500/30',
-        icon: '🏹'
+        icon: Target
       };
     default:
       return {
         label: type,
         desc: 'Comportamento padrão.',
         colorClass: 'text-gray-400 bg-gray-950/20 border-gray-500/30',
-        icon: '❓'
+        icon: HelpCircle
       };
   }
 };
@@ -59,6 +59,56 @@ interface BestiaryCardProps {
 export default function BestiaryCard({ entity }: BestiaryCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  // Generate candidate filenames for this mob to fetch from minecraft.wiki/w/Special:FilePath/
+  const getCandidates = (id: string): string[] => {
+    const nameMap: { [key: string]: string } = {
+      'cave_spider': 'Cave_Spider',
+      'creeper': 'Creeper',
+      'enderman': 'Enderman',
+      'skeleton': 'Skeleton',
+      'slime': 'Slime',
+      'spider': 'Spider',
+      'zombie': 'Zombie',
+      'iron_golem': 'Iron_Golem',
+      'wolf': 'Wolf',
+      'cat': 'Tuxedo_Cat',
+      'chicken': 'Chicken',
+      'cow': 'Cow',
+      'frog': 'Temperate_Frog',
+      'horse': 'White_Horse',
+      'pig': 'Pig',
+      'sheep': 'White_Sheep',
+    };
+
+    const baseName = nameMap[id] || id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('_');
+
+    return [
+      `${baseName}_JE2_BE2.gif`,
+      `${baseName}_JE2_BE1.gif`,
+      `${baseName}_JE3_BE2.gif`,
+      `${baseName}_JE1_BE1.gif`,
+      `${baseName}_render.gif`,
+      `${baseName}.gif`,
+      `${baseName}_JE2_BE2.png`,
+      `${baseName}_JE2_BE1.png`,
+      `${baseName}_JE3_BE2.png`,
+      `${baseName}_render.png`,
+      `${baseName}.png`,
+    ];
+  };
+
+  const candidates = getCandidates(entity.id);
+  const [candidateIndex, setCandidateIndex] = useState(0);
+
+  const currentFilename = candidates[candidateIndex] || `${entity.id}.gif`;
+  const imageUrl = `https://minecraft.wiki/w/Special:FilePath/${currentFilename}`;
+
+  const handleImageError = () => {
+    if (candidateIndex < candidates.length - 1) {
+      setCandidateIndex(prev => prev + 1);
+    }
+  };
 
   // Map entity type to custom background styles for high-tech tags
   const typeColors: { [key: string]: { border: string; bg: string; text: string } } = {
@@ -73,6 +123,7 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
   const segmentsCount = 10;
   const activeSegments = Math.round(entity.accuracy / 10);
   const temperament = getTemperamentDetails(entity.type);
+
 
   return (
     <>
@@ -101,8 +152,9 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
           <div className="w-full aspect-square mb-4 flex items-center justify-center relative overflow-hidden bg-[#161616] border border-[#222222]">
             <img 
               className="w-4/5 h-4/5 object-contain transition-transform duration-300 group-hover:scale-105" 
-              src={entity.image} 
+              src={imageUrl} 
               alt={entity.name}
+              onError={handleImageError}
               referrerPolicy="no-referrer"
             />
             {/* Scanline overlay effect on image when hovered */}
@@ -178,7 +230,13 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
             {/* Image & Loot Table Split */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-[#161616] border border-[#222222] p-3 aspect-square flex items-center justify-center">
-                <img className="w-full h-full object-contain animate-pulse-slow" src={entity.image} alt={entity.name} referrerPolicy="no-referrer" />
+                <img 
+                  className="w-full h-full object-contain animate-pulse-slow" 
+                  src={imageUrl} 
+                  alt={entity.name} 
+                  onError={handleImageError}
+                  referrerPolicy="no-referrer" 
+                />
               </div>
 
               <div className="flex flex-col gap-4 justify-between">
@@ -189,7 +247,7 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
                     <p>
                       <span className="text-gray-500">Temperamento:</span>{' '}
                       <span className={`px-1.5 py-0.5 rounded-sm border inline-flex items-center gap-1 ${temperament.colorClass}`}>
-                        <span>{temperament.icon}</span>
+                        <temperament.icon className="w-3 h-3 shrink-0" />
                         <span>{temperament.label}</span>
                       </span>
                     </p>
