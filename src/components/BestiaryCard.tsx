@@ -172,12 +172,10 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
   useEffect(() => {
     if (isModalOpen) {
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+      return () => {
+        document.body.style.overflow = '';
+      };
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, [isModalOpen]);
 
   // Map entity type to custom background styles for high-tech tags

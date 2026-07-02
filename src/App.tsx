@@ -358,10 +358,12 @@ export default function App() {
           </div>
 
           {/* Global Details Modal */}
-          <BestiaryDetailModal 
-            entity={selectedMob} 
-            onClose={() => setSelectedMob(null)} 
-          />
+          {selectedMob && (
+            <BestiaryDetailModal 
+              entity={selectedMob} 
+              onClose={() => setSelectedMob(null)} 
+            />
+          )}
 
       </main>
 

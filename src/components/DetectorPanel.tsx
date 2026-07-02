@@ -828,6 +828,17 @@ export default function DetectorPanel({
                             onClick={() => setZoomedIndex(zoomedIndex === i ? null : i)}
                             className="cursor-pointer group/det"
                           >
+                            {/* Full-box click target with transparent fill to catch mouse events */}
+                            <rect
+                              x={d.box[0]}
+                              y={d.box[1]}
+                              width={d.box[2] - d.box[0]}
+                              height={d.box[3] - d.box[1]}
+                              fill="transparent"
+                              pointerEvents="all"
+                              className="cursor-pointer"
+                            />
+
                             {/* 1. Draw Segmentation Contour */}
                             {hasPolygon && (viewMode === 'overlay' || viewMode === 'highlight') && (
                               <polygon
