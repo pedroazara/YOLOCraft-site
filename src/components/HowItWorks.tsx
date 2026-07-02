@@ -78,7 +78,7 @@ python -m src.detector_gui`
         <div className="p-4 bg-[#141414] border border-[#262626] rounded-sm mb-4">
           <div className="flex items-center gap-2 mb-2">
             <Layers className="w-4 h-4 text-primary" />
-            <span className="font-display text-sm font-bold tracking-wider text-primary">MANUAL TÉCNICO</span>
+            <span className="font-display text-sm font-bold tracking-wider text-primary">MANUAL TECNICO</span>
           </div>
           <p className="text-gray-400 text-xs font-sans leading-relaxed">
             Explore a documentação do projeto, estrutura de pastas, dataset, estado de treino e guias práticos do YOLOCraft.
@@ -129,13 +129,13 @@ python -m src.detector_gui`
                 <div className="border-b border-[#222222] pb-4">
                   <h2 className="font-display text-2xl font-bold tracking-wider flex items-center gap-3">
                     <BookOpen className="w-5 h-5 text-primary" />
-                    <span>VISÃO GERAL DO PROJETO</span>
+                    <span>VISAO GERAL DO PROJETO</span>
                   </h2>
                   <p className="font-mono text-xs text-gray-500 mt-1 uppercase">Introdução, pipeline YOLO + SAM e objetivos acadêmicos</p>
                 </div>
 
                 <div className="p-4 bg-primary/5 border border-primary/20 text-xs sm:text-sm text-gray-300 leading-relaxed font-sans">
-                  <strong className="text-white block mb-2 font-display text-sm tracking-wider">O que é o YOLOCraft?</strong>
+                  <strong className="text-white block mb-2 font-display text-sm tracking-wider">O que e o YOLOCraft?</strong>
                   YOLOCraft identifica automaticamente mobs do Minecraft em imagens e gera máscaras de segmentação com precisão cirúrgica de pixels. O sistema integra inteligência de localização de objetos de alta velocidade com um segmentador universal de forma livre.
                 </div>
 
@@ -163,13 +163,13 @@ python -m src.detector_gui`
 
                 <div className="space-y-4 pt-4">
                   <h3 className="font-display text-sm font-bold tracking-wider text-white border-l-2 border-primary pl-2 uppercase">
-                    Objetivos Práticos de Estudo
+                    Objetivos Praticos de Estudo
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
-                      { title: "Visão Computacional", desc: "Aplicação de técnicas avançadas de imagem e extração de contornos em ambientes virtuais de jogos." },
-                      { title: "Detecção de Objetos (YOLO)", desc: "Treinamento, varredura de thresholds de confiança e avaliação quantitativa de bounding boxes." },
-                      { title: "Segmentação por Instância", desc: "Integração híbrida de YOLO + SAM para mapear geometrias voxelizadas complexas sem latência." },
+                      { title: "Visao Computacional", desc: "Aplicação de técnicas avançadas de imagem e extração de contornos em ambientes virtuais de jogos." },
+                      { title: "Deteccao de Objetos (YOLO)", desc: "Treinamento, varredura de thresholds de confiança e avaliação quantitativa de bounding boxes." },
+                      { title: "Segmentacao por Instancia", desc: "Integração híbrida de YOLO + SAM para mapear geometrias voxelizadas complexas sem latência." },
                       { title: "Engenharia de Pipelines ML", desc: "Estruturação limpa de conversores, registradores automáticos de logs e criação de APIs de inferência." }
                     ].map((obj, idx) => (
                       <div key={idx} className="p-4 bg-[#121212] border border-[#222222] hover:border-[#333333] transition-colors rounded-sm space-y-1">
@@ -514,7 +514,7 @@ python -m src.detector_gui`
                     <div className="corner-bracket-br"></div>
                     
                     <div className="flex justify-between items-center border-b border-[#222222] pb-2">
-                      <span className="font-display text-sm font-bold text-primary tracking-wider">YOLO26s (Apresentação)</span>
+                      <span className="font-display text-sm font-bold text-primary tracking-wider">YOLO26s (Apresentacao)</span>
                       <span className="font-mono text-[9px] px-1.5 py-0.5 bg-[#1e3f22]/30 text-primary border border-primary/20 animate-pulse">EM TREINO</span>
                     </div>
                     
@@ -556,11 +556,11 @@ python -m src.detector_gui`
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-black/50 p-2.5 border border-[#222222]">
                         <span className="font-mono text-[9px] text-gray-500 block">Mapeamento de Épocas</span>
-                        <span className="font-display text-xs text-white font-bold">100 / 100 ÉPOCAS</span>
+                        <span className="font-display text-xs text-white font-bold">100 / 100 EPOCAS</span>
                       </div>
                       <div className="bg-black/50 p-2.5 border border-[#222222]">
                         <span className="font-mono text-[9px] text-gray-500 block">Estabilidade</span>
-                        <span className="font-display text-xs text-secondary font-bold">100% ESTÁVEL</span>
+                        <span className="font-display text-xs text-secondary font-bold">100% ESTAVEL</span>
                       </div>
                       <div className="bg-black/50 p-2.5 border border-[#222222]">
                         <span className="font-mono text-[9px] text-gray-500 block">mAP50</span>
@@ -575,7 +575,7 @@ python -m src.detector_gui`
                 </div>
 
                 <div className="p-4 bg-[#141414] border border-[#222222] rounded-sm space-y-3">
-                  <h3 className="font-display text-xs font-bold text-white uppercase">Histórico e API Funcional</h3>
+                  <h3 className="font-display text-xs font-bold text-white uppercase">Historico e API Funcional</h3>
                   <p className="font-sans text-xs text-gray-400 leading-relaxed">
                     O histórico de treinamento estruturado completo é guardado e persistido de forma dinâmica em <code className="text-white px-1 py-0.5 bg-black rounded-sm text-[11px] font-mono">training_logs/training_history.csv</code> (gerado autonomamente por <code className="text-white px-1 py-0.5 bg-black rounded-sm text-[11px] font-mono">src/training_logger.py</code>). A API do backend (<code className="text-white px-1 py-0.5 bg-black rounded-sm text-[11px] font-mono">src/api.py</code>) está totalmente funcional, expondo o pipeline de segmentação integrada com SAM no endpoint unificado <code className="text-white px-1 py-0.5 bg-black rounded-sm text-[11px] font-mono">/predict</code>.
                   </p>
@@ -726,7 +726,7 @@ python -m src.detector_gui`
                   {/* Versão 1.0 */}
                   <div className="p-5 bg-[#141414] border border-[#222222] rounded-sm space-y-4">
                     <div className="flex justify-between items-center border-b border-[#222222] pb-2">
-                      <span className="font-display text-sm font-bold text-white tracking-wider">Versão 1.0 — Detecção com YOLO</span>
+                      <span className="font-display text-sm font-bold text-white tracking-wider">Versao 1.0 - Deteccao com YOLO</span>
                       <span className="font-mono text-[9px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/20">100% COMPLETO</span>
                     </div>
                     
@@ -756,7 +756,7 @@ python -m src.detector_gui`
                   {/* Versão 2.0 */}
                   <div className="p-5 bg-[#141414] border border-[#222222] rounded-sm space-y-4">
                     <div className="flex justify-between items-center border-b border-[#222222] pb-2">
-                      <span className="font-display text-sm font-bold text-white tracking-wider">Versão 2.0 — Segmentação</span>
+                      <span className="font-display text-sm font-bold text-white tracking-wider">Versao 2.0 - Segmentacao</span>
                       <span className="font-mono text-[9px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/20">80% COMPLETO</span>
                     </div>
 
@@ -788,7 +788,7 @@ python -m src.detector_gui`
                   {/* Versão 3.0 */}
                   <div className="p-5 bg-[#141414] border border-[#222222] rounded-sm space-y-4">
                     <div className="flex justify-between items-center border-b border-[#222222] pb-2">
-                      <span className="font-display text-sm font-bold text-white tracking-wider">Versão 3.0 — Aplicação Web</span>
+                      <span className="font-display text-sm font-bold text-white tracking-wider">Versao 3.0 - Aplicacao Web</span>
                       <span className="font-mono text-[9px] px-2 py-0.5 bg-[#443311]/30 text-[#e6a23c] border border-[#e6a23c]/20">60% COMPLETO</span>
                     </div>
                     

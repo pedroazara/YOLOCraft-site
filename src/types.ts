@@ -1,4 +1,4 @@
-export type ActiveTab = 'detector' | 'entidades' | 'stats' | 'como-funciona';
+export type ActiveTab = 'detector' | 'entidades' | 'como-funciona';
 
 export interface MobEntity {
   id: string;

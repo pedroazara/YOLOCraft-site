@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { ActiveTab } from '../types';
-import { Compass, Skull, TrendingUp, HelpCircle, User, Menu, X } from 'lucide-react';
+import { Compass, Skull, HelpCircle, Menu, X } from 'lucide-react';
 import YolocraftLogo from './YolocraftLogo';
 import { motion, AnimatePresence } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HeaderProps {
   activeTab: ActiveTab;
@@ -14,6 +15,7 @@ interface HeaderProps {
 export default function Header({ activeTab, setActiveTab, onEnterClick, userEmail }: HeaderProps) {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
 
   return (
     <header className="bg-[#111111] border-b border-[#333333] sticky top-0 z-50 w-full transition-colors duration-200">
@@ -46,7 +48,7 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
             }`}
           >
             <Compass className="w-4 h-4 flex-shrink-0 relative top-[1px]" />
-            <span className="font-minecraft tracking-wider">DETECTOR</span>
+            <span className="font-minecraft tracking-wider">{t('nav_detector')}</span>
             
             {activeTab === 'detector' && (
               <motion.div
@@ -79,7 +81,7 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
             }`}
           >
             <Skull className="w-4 h-4 flex-shrink-0 relative top-[1px]" />
-            <span className="font-minecraft tracking-wider">ENTIDADES</span>
+            <span className="font-minecraft tracking-wider">{t('nav_bestiary')}</span>
 
             {activeTab === 'entidades' && (
               <motion.div
@@ -101,38 +103,7 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
             )}
           </button>
 
-          <button
-            onClick={() => setActiveTab('stats')}
-            onMouseEnter={() => setHoveredTab('stats')}
-            onMouseLeave={() => setHoveredTab(null)}
-            className={`relative flex items-center gap-2 px-3 lg:px-4 py-2.5 text-xs lg:text-sm select-none cursor-pointer whitespace-nowrap transition-all duration-100 ${
-              activeTab === 'stats'
-                ? 'text-primary'
-                : 'text-[#aaaaaa] hover:text-white'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4 flex-shrink-0 relative top-[1px]" />
-            <span className="font-minecraft tracking-wider">ESTATISTICAS</span>
 
-            {activeTab === 'stats' && (
-              <motion.div
-                layoutId="active-indicator"
-                className="absolute inset-0 bg-[#1e3f22]/60 border-2 border-t-[#4ade80] border-l-[#4ade80] border-r-[#155e2f] border-b-[#155e2f] -z-20 shadow-[2px_2px_0px_#000000]"
-                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
-              />
-            )}
-
-            {hoveredTab === 'stats' && activeTab !== 'stats' && (
-              <motion.div
-                layoutId="hover-indicator"
-                className="absolute inset-0 bg-[#2c2c2c] border-2 border-t-[#8b8b8b] border-l-[#8b8b8b] border-r-[#444444] border-b-[#444444] -z-10 shadow-[2px_2px_0px_#000000]"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
-              />
-            )}
-          </button>
 
           <button
             onClick={() => setActiveTab('como-funciona')}
@@ -145,7 +116,7 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
             }`}
           >
             <HelpCircle className="w-4 h-4 flex-shrink-0 relative top-[1px]" />
-            <span className="font-minecraft tracking-wider">COMO FUNCIONA</span>
+            <span className="font-minecraft tracking-wider">{t('nav_how_it_works')}</span>
 
             {activeTab === 'como-funciona' && (
               <motion.div
@@ -168,8 +139,18 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
           </button>
         </nav>
 
-        {/* Right Action buttons (Authentication removed, only keeping Mobile Menu Toggle) */}
+        {/* Right Action buttons (Language switcher + Mobile Menu Toggle) */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Language Toggle Button */}
+          <button
+            onClick={() => setLanguage(language === 'pt' ? 'en' : 'pt')}
+            className="px-3 py-1.5 bg-[#1a1a1a] hover:bg-[#252525] border-2 border-t-[#555555] border-l-[#555555] border-r-[#111111] border-b-[#111111] font-minecraft text-[11px] font-bold text-primary active:border-t-[#111111] active:border-l-[#111111] active:border-r-[#555555] active:border-b-[#555555] transition-all duration-100 cursor-pointer rounded-none flex items-center gap-1.5 shadow-[2px_2px_0px_#000000]"
+            title={language === 'pt' ? 'Switch to English' : 'Mudar para Português'}
+          >
+            <span className="text-sm">🌐</span>
+            <span className="font-bold">{language === 'pt' ? 'EN' : 'PT'}</span>
+          </button>
+
           {/* Hamburger Menu Toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -202,7 +183,7 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
                 }`}
               >
                 <Compass className="w-4 h-4 flex-shrink-0" />
-                <span>DETECTOR</span>
+                <span>{t('nav_detector')}</span>
               </button>
 
               <button
@@ -217,22 +198,7 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
                 }`}
               >
                 <Skull className="w-4 h-4 flex-shrink-0" />
-                <span>ENTIDADES</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab('stats');
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`relative flex items-center gap-3 px-4 py-3 font-minecraft text-sm select-none cursor-pointer w-full text-left transition-all duration-100 ${
-                  activeTab === 'stats'
-                    ? 'text-primary bg-[#1e3f22]/30 border-l-4 border-primary'
-                    : 'text-[#aaaaaa] hover:text-white bg-transparent border-l-4 border-transparent'
-                }`}
-              >
-                <TrendingUp className="w-4 h-4 flex-shrink-0" />
-                <span>ESTATISTICAS</span>
+                <span>{t('nav_bestiary')}</span>
               </button>
 
               <button
@@ -247,7 +213,7 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
                 }`}
               >
                 <HelpCircle className="w-4 h-4 flex-shrink-0" />
-                <span>COMO FUNCIONA</span>
+                <span>{t('nav_how_it_works')}</span>
               </button>
             </motion.div>
           )}

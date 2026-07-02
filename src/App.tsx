@@ -1,22 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { ActiveTab, ScanResult, MobEntity } from './types';
-import { BESTIARY_ENTITIES, RECENT_SCANS, RESULTS_SCREENSHOT_BOUNDING_BOXES, STATIC_RESULTS_IMAGE } from './data';
+import { BESTIARY_ENTITIES, RECENT_SCANS } from './data';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import BestiaryCard from './components/BestiaryCard';
 import DetectorPanel from './components/DetectorPanel';
 import BestiaryDetailModal from './components/BestiaryDetailModal';
 import HowItWorks from './components/HowItWorks';
-import { Shield, Brain, Terminal, ChevronRight, BarChart3, AlertTriangle, Eye, Compass, LayoutGrid } from 'lucide-react';
+import MinecraftBackground from './components/MinecraftBackground';
+import { Shield, Brain, Compass, Trash2 } from 'lucide-react';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
-export default function App() {
+function AppContent() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('detector');
-  const [scans, setScans] = useState<ScanResult[]>(RECENT_SCANS);
   const [hoveredGridCell, setHoveredGridCell] = useState<{ r: number; c: number } | null>(null);
   const [blockCursorPos, setBlockCursorPos] = useState({ x: -100, y: -100 });
   const [userEmail, setUserEmail] = useState<string | undefined>('PedroHenriqueAlmeida2004@gmail.com');
   const [externalLoadScan, setExternalLoadScan] = useState<ScanResult | null>(null);
   const [selectedMob, setSelectedMob] = useState<MobEntity | null>(null);
+
+  const { language, t, translateMob, getTranslatedMobDetails } = useLanguage();
+
+  // Load persistent scans history
+  const [scans, setScans] = useState<ScanResult[]>(() => {
+    const saved = localStorage.getItem('yolocraft_scans_history_v1');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return RECENT_SCANS;
+      }
+    }
+    return RECENT_SCANS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('yolocraft_scans_history_v1', JSON.stringify(scans));
+  }, [scans]);
+
+  useEffect(() => {
+    // Reset body overflow lock when switching tabs to ensure scroll is never stuck
+    document.body.style.overflow = '';
+  }, [activeTab]);
 
   // Load mouse tracking cursor coordinates
   useEffect(() => {
@@ -35,6 +60,17 @@ export default function App() {
   const handleScanComplete = (newScan: ScanResult) => {
     // Add new scan to the beginning of the history
     setScans(prev => [newScan, ...prev]);
+  };
+
+  const handleDeleteScan = (idToDelete: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setScans(prev => prev.filter(s => s.id !== idToDelete));
+  };
+
+  const handleClearHistory = () => {
+    if (confirm(language === 'pt' ? 'Tem certeza que deseja limpar todo o histórico de varreduras?' : 'Are you sure you want to clear all scan history?')) {
+      setScans([]);
+    }
   };
 
   const handleViewMobDetails = (mobClass: string) => {
@@ -64,11 +100,11 @@ export default function App() {
 
   const handleEnterClick = () => {
     if (userEmail) {
-      if (confirm('Deseja deslogar da conta YOLOCraft?')) {
+      if (confirm(t('logout'))) {
         setUserEmail(undefined);
       }
     } else {
-      const email = prompt('Digite seu e-mail de explorador:', 'Steve@yolocraft.com');
+      const email = prompt(t('enter_email'), 'Steve@yolocraft.com');
       if (email) setUserEmail(email);
     }
   };
@@ -76,6 +112,17 @@ export default function App() {
   return (
     <div className="custom-cursor min-h-screen flex flex-col justify-between selection:bg-primary selection:text-on-primary transition-colors duration-200">
       
+      {/* Interactive, animated pixelated Minecraft background layer */}
+      <MinecraftBackground activeTab={activeTab} />
+
+      {/* Dynamic Minecraft themed glow background for each tab */}
+      <div className={`fixed inset-0 pointer-events-none z-0 transition-all duration-1000 ${
+        activeTab === 'detector' ? 'bg-[radial-gradient(circle_at_50%_35%,rgba(16,185,129,0.12)_0%,transparent_70%)]' :
+        activeTab === 'entidades' ? 'bg-[radial-gradient(circle_at_50%_35%,rgba(245,158,11,0.12)_0%,transparent_70%)]' :
+        activeTab === 'como-funciona' ? 'bg-[radial-gradient(circle_at_50%_35%,rgba(6,182,212,0.12)_0%,transparent_70%)]' :
+        'bg-[radial-gradient(circle_at_50%_35%,rgba(168,85,247,0.12)_0%,transparent_70%)]'
+      }`} />
+
       {/* Dynamic Minecraft Coordinate trailing block */}
       <div 
         className="fixed w-4 h-4 bg-primary opacity-30 pointer-events-none z-[9999] hidden lg:block border border-black"
@@ -110,28 +157,7 @@ export default function App() {
             />
 
             {/* Bento Grid Info: Scan Features */}
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 col-span-1 md:col-span-2 space-y-4 bg-[#111111] border border-[#333333] relative">
-                <div className="corner-bracket-tl"></div>
-                <div className="corner-bracket-tr"></div>
-                <div className="corner-bracket-bl"></div>
-                <div className="corner-bracket-br"></div>
-
-                <div className="flex items-center gap-3 text-primary">
-                  <Shield className="w-6 h-6" />
-                  <h3 className="font-display text-xl uppercase font-bold tracking-wider">Analise Espacial Avancada</h3>
-                </div>
-                <p className="text-gray-400 font-sans text-xs sm:text-sm leading-relaxed">
-                  Nosso algoritmo do YOLOCraft detecta múltiplos mobs mesmo em áreas de densa folhagem ou cavernas profundas. Receba feedback em tempo real com probabilidade de drops de pólvora, teia, flechas ou carne podre de pixels brutos filtrados do HUD.
-                </p>
-                <div className="grid grid-cols-4 gap-2 pt-2">
-                  <div className="h-1 bg-primary"></div>
-                  <div className="h-1 bg-primary"></div>
-                  <div className="h-1 bg-primary/40"></div>
-                  <div className="h-1 bg-primary/10"></div>
-                </div>
-              </div>
-
+            <section className="w-full">
               <div className="p-6 space-y-3 bg-[#111111] border border-[#333333] relative">
                 <div className="corner-bracket-tl"></div>
                 <div className="corner-bracket-tr"></div>
@@ -140,10 +166,10 @@ export default function App() {
 
                 <div className="flex items-center gap-2 text-secondary">
                   <Brain className="w-5 h-5" />
-                  <h3 className="font-display text-base uppercase font-bold tracking-wider">Auto-Loot Predict</h3>
+                  <h3 className="font-display text-base uppercase font-bold tracking-wider">{t('bento2_title')}</h3>
                 </div>
-                <p className="font-sans text-xs leading-relaxed text-gray-400">
-                  Preveja os espólios de drops potenciais com base nos encantamentos atuais do jogador e variantes de mobs detectadas a até 16 chunks de distância.
+                <p className="font-sans text-xs sm:text-sm leading-relaxed text-gray-400">
+                  {t('bento2_desc')}
                 </p>
               </div>
             </section>
@@ -152,58 +178,77 @@ export default function App() {
             <section className="space-y-8">
               <div className="flex justify-between items-end border-b border-[#222222] pb-4">
                 <div>
-                  <h2 className="font-display text-xl sm:text-2xl uppercase text-white font-bold tracking-wider">Varreduras Recentes</h2>
+                  <h2 className="font-display text-xl sm:text-2xl uppercase text-white font-bold tracking-wider">{t('scan_history')}</h2>
                   <p className="font-mono text-[10px] text-gray-500 uppercase mt-1 tracking-widest">
-                    Histórico das últimas sondas ativas de Redstone
+                    {t('scan_history_sub')}
                   </p>
                 </div>
-                <button 
-                  onClick={() => setActiveTab('stats')}
-                  className="text-primary font-mono text-[11px] uppercase tracking-wider hover:underline cursor-pointer"
-                >
-                  Ver Todos Relatórios →
-                </button>
+                <div className="flex gap-4">
+                  {scans.length > 0 && (
+                    <button 
+                      onClick={handleClearHistory}
+                      className="text-red-400 hover:text-red-300 font-mono text-[11px] uppercase tracking-wider hover:underline cursor-pointer"
+                    >
+                      [{t('clear_history')}]
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {scans.slice(0, 6).map((scan, idx) => (
-                  <div 
-                    key={idx}
-                    onClick={() => {
-                      setExternalLoadScan(scan);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="group cursor-pointer hover:border-primary transition-all duration-200 bg-[#111111] border border-[#333333] p-2"
-                  >
-                    <div className="aspect-square bg-[#161616] flex items-center justify-center overflow-hidden border border-[#222222]">
-                      <img 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" 
-                        src={scan.imageUrl} 
-                        alt={scan.name}
-                        referrerPolicy="no-referrer"
-                      />
+              {scans.length === 0 ? (
+                <div className="bg-[#111111] border border-[#222222] p-8 text-center text-gray-500 font-mono text-xs">
+                  {t('no_history')}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                  {scans.slice(0, 12).map((scan, idx) => (
+                    <div 
+                      key={scan.id + '-' + idx}
+                      onClick={() => {
+                        setExternalLoadScan(scan);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="group cursor-pointer hover:border-primary transition-all duration-200 bg-[#111111] border border-[#333333] p-2 relative"
+                    >
+                      {/* Individual delete item trigger */}
+                      <button
+                        onClick={(e) => handleDeleteScan(scan.id, e)}
+                        className="absolute top-3 right-3 z-10 p-1.5 bg-black/80 hover:bg-red-950 border border-[#333333] hover:border-red-500 text-gray-400 hover:text-red-400 transition-colors cursor-pointer rounded-sm"
+                        title={t('delete_scan')}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+
+                      <div className="aspect-square bg-[#161616] flex items-center justify-center overflow-hidden border border-[#222222]">
+                        <img 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" 
+                          src={scan.imageUrl} 
+                          alt={scan.name}
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                      <div className="mt-2 text-center text-[10px] font-mono text-gray-400 font-bold uppercase truncate bg-[#161616] p-1 border border-[#222222]">
+                        {translateMob(scan.name)}
+                      </div>
                     </div>
-                    <div className="mt-2 text-center text-[10px] font-mono text-gray-400 font-bold uppercase truncate bg-[#161616] p-1 border border-[#222222]">
-                      {scan.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </section>
 
             {/* Quick Stats Foot */}
             <section className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#222222] text-center bg-[#111111] border border-[#333333]">
               <div className="p-6 space-y-1">
                 <div className="text-primary text-3xl font-display font-bold">1.2M+</div>
-                <div className="font-mono uppercase text-[10px] text-gray-500 tracking-wider">Mobs Escaneados</div>
+                <div className="font-mono uppercase text-[10px] text-gray-500 tracking-wider">{t('stats_mobs')}</div>
               </div>
               <div className="p-6 space-y-1">
                 <div className="text-primary text-3xl font-display font-bold">99.8%</div>
-                <div className="font-mono uppercase text-[10px] text-gray-500 tracking-wider">Precisão de Detecção</div>
+                <div className="font-mono uppercase text-[10px] text-gray-500 tracking-wider">{t('stats_accuracy')}</div>
               </div>
               <div className="p-6 space-y-1">
                 <div className="text-primary text-3xl font-display font-bold">4ms</div>
-                <div className="font-mono uppercase text-[10px] text-gray-500 tracking-wider">Tempo de Inferência</div>
+                <div className="font-mono uppercase text-[10px] text-gray-500 tracking-wider">{t('stats_time')}</div>
               </div>
             </section>
 
@@ -213,17 +258,17 @@ export default function App() {
         <div className={`space-y-8 animate-fade-in ${activeTab !== 'entidades' ? 'hidden' : ''}`}>
             <div className="border-b border-[#222222] pb-6">
               <h1 className="font-display text-3xl sm:text-4xl text-white font-bold uppercase tracking-wider mb-3">
-                ENCICLOPEDIA DE ENTIDADES
+                {t('enc_title')}
               </h1>
               <p className="font-sans text-xs sm:text-sm text-gray-400 max-w-2xl leading-relaxed">
-                A Rede Neural YOLO-VOXEL catalogou as seguintes entidades com base no treinamento de Redstone. A precisão de segmentação é validada através de 40.000 quadros de voxels únicos no bioma Overworld.
+                {t('enc_subtitle')}
               </p>
             </div>
 
             {/* Bestiary Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {BESTIARY_ENTITIES.map((entity) => (
-                <BestiaryCard key={entity.id} entity={entity} />
+                <BestiaryCard key={entity.id} entity={getTranslatedMobDetails(entity)} />
               ))}
             </div>
           </div>
@@ -233,134 +278,10 @@ export default function App() {
           <HowItWorks />
         </div>
 
-        {/* TAB 4: STATISTICS & HISTORICAL SCAN ANALYZER */}
-        <div className={`space-y-12 animate-fade-in ${activeTab !== 'stats' ? 'hidden' : ''}`}>
-            <div className="border-b border-[#222222] pb-6">
-              <h1 className="font-display text-3xl sm:text-4xl text-white font-bold uppercase tracking-wider mb-3">
-                Painel Estatistico de Varreduras
-              </h1>
-              <p className="font-sans text-xs sm:text-sm text-gray-400 max-w-2xl leading-relaxed">
-                Acompanhe o tráfego de entidades catalogadas pelas suas sondas analíticas. Escolha e clique em qualquer registro do banco de dados local para re-escanear no visor óptico principal do detector.
-              </p>
-            </div>
-
-            {/* Distribution metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-[#111111] p-6 border border-[#333333] text-center space-y-3 relative">
-                <div className="corner-bracket-tl"></div>
-                <div className="corner-bracket-tr"></div>
-                <div className="corner-bracket-bl"></div>
-                <div className="corner-bracket-br"></div>
-                <span className="font-mono text-[10px] text-gray-500 uppercase block tracking-wider">Precisão Geral</span>
-                <span className="text-3xl font-display text-primary font-bold">98.4%</span>
-                <div className="h-1 bg-[#222222] overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '98.4%' }} />
-                </div>
-              </div>
-
-              <div className="bg-[#111111] p-6 border border-[#333333] text-center space-y-3 relative">
-                <div className="corner-bracket-tl"></div>
-                <div className="corner-bracket-tr"></div>
-                <div className="corner-bracket-bl"></div>
-                <div className="corner-bracket-br"></div>
-                <span className="font-mono text-[10px] text-gray-500 uppercase block tracking-wider">Ameaças Evitadas</span>
-                <span className="text-3xl font-display text-secondary font-bold">8,432</span>
-                <div className="h-1 bg-[#222222] overflow-hidden">
-                  <div className="h-full bg-secondary" style={{ width: '84%' }} />
-                </div>
-              </div>
-
-              <div className="bg-[#111111] p-6 border border-[#333333] text-center space-y-3 relative">
-                <div className="corner-bracket-tl"></div>
-                <div className="corner-bracket-tr"></div>
-                <div className="corner-bracket-bl"></div>
-                <div className="corner-bracket-br"></div>
-                <span className="font-mono text-[10px] text-gray-500 uppercase block tracking-wider">Chunks Mapeadas</span>
-                <span className="text-3xl font-display text-primary font-bold">14,290</span>
-                <div className="h-1 bg-[#222222] overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '91%' }} />
-                </div>
-              </div>
-
-              <div className="bg-[#111111] p-6 border border-[#333333] text-center space-y-3 relative">
-                <div className="corner-bracket-tl"></div>
-                <div className="corner-bracket-tr"></div>
-                <div className="corner-bracket-bl"></div>
-                <div className="corner-bracket-br"></div>
-                <span className="font-mono text-[10px] text-gray-500 uppercase block tracking-wider">Estado do Loop</span>
-                <span className="text-xl font-mono text-secondary font-bold uppercase tracking-wider">ESTÁVEL</span>
-                <div className="h-1 bg-[#222222] overflow-hidden">
-                  <div className="h-full bg-secondary" style={{ width: '100%' }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Historical Scan Reports list with load handles */}
-            <div className="bg-[#111111] border border-[#333333] p-6 relative">
-              <div className="corner-bracket-tl"></div>
-              <div className="corner-bracket-tr"></div>
-              <div className="corner-bracket-bl"></div>
-              <div className="corner-bracket-br"></div>
-
-              <h3 className="font-display text-lg uppercase text-primary font-bold tracking-wider mb-6 flex items-center gap-3">
-                <BarChart3 className="w-5 h-5" />
-                <span>Arquivo Historico de Chunks Analisadas</span>
-              </h3>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left font-mono text-[11px] border-collapse">
-                  <thead>
-                    <tr className="border-b border-[#222222] text-gray-500">
-                      <th className="p-3 tracking-wider">IDENTIFICADOR</th>
-                      <th className="p-3 tracking-wider">HORÁRIO DA SONDA</th>
-                      <th className="p-3 tracking-wider">PROFUNDIDADE</th>
-                      <th className="p-3 tracking-wider">NÍVEL DE CRITICIDADE</th>
-                      <th className="p-3 tracking-wider">CONFIABILIDADE</th>
-                      <th className="p-3 text-right tracking-wider">AÇÃO</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#222222] border-b border-[#222222]">
-                    {scans.map((scan, index) => (
-                      <tr key={index} className="hover:bg-[#161616] transition-colors">
-                        <td className="p-3 font-bold text-white">{scan.name}</td>
-                        <td className="p-3 text-gray-400">{scan.timestamp}</td>
-                        <td className="p-3 text-gray-400">{scan.depth}</td>
-                        <td className="p-3">
-                          <span className={`px-2 py-0.5 text-[9px] font-bold border tracking-wider ${
-                            scan.threatLevel === 'CRÍTICO' ? 'bg-red-950/10 border-red-500/30 text-red-400' :
-                            scan.threatLevel === 'ALTO' ? 'bg-amber-950/10 border-amber-500/30 text-amber-400' :
-                            'bg-emerald-950/10 border-primary/30 text-primary'
-                          }`}>
-                            {scan.threatLevel}
-                          </span>
-                        </td>
-                        <td className="p-3 text-primary font-bold">
-                          {scan.boundingBoxes[0]?.confidence || 90}%
-                        </td>
-                        <td className="p-3 text-right">
-                          <button
-                            onClick={() => {
-                              setExternalLoadScan(scan);
-                              setActiveTab('detector');
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="bg-[#161616] hover:bg-primary hover:text-black text-gray-300 font-bold px-3 py-1 text-[10px] uppercase border border-[#333333] hover:border-primary transition-all cursor-pointer"
-                          >
-                            RE-ANALISAR
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
           {/* Global Details Modal */}
           {selectedMob && (
             <BestiaryDetailModal 
-              entity={selectedMob} 
+              entity={getTranslatedMobDetails(selectedMob)} 
               onClose={() => setSelectedMob(null)} 
             />
           )}
@@ -370,5 +291,13 @@ export default function App() {
       {/* Footer copyright */}
       <Footer />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }

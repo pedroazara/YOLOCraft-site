@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ScanResult, ApiPredictResponse, ApiDetection } from '../types';
 import { UploadCloud, Radar, Shield, Eye, Download, Info, Check, RefreshCw, Layers, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface DetectorPanelProps {
   onScanComplete: (result: ScanResult) => void;
@@ -232,6 +233,7 @@ export default function DetectorPanel({
   onClearExternalLoad,
   onViewMobDetails
 }: DetectorPanelProps) {
+  const { language, t, translateMob } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -624,13 +626,15 @@ export default function DetectorPanel({
         <div className="w-full lg:w-3/5 space-y-6">
           <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 border border-primary/30 font-mono text-[10px] font-bold text-primary uppercase tracking-widest">
             <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-            <span>SISTEMA INTEGRADO YOLO V8 + POLYGON MASKS</span>
+            <span>{t('det_subtitle')}</span>
           </div>
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white font-bold leading-normal tracking-[0.18em] select-none">
-            ANALISE DE MOBS <br /> <span className="text-primary font-display">YOLOCraft</span>
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white font-bold leading-none tracking-[0.12em] select-none uppercase">
+            {t('det_title')}
           </h1>
           <p className="font-sans text-gray-400 text-sm sm:text-base max-w-xl leading-relaxed">
-            Mapeie o contorno das ameaças hostis. Envie capturas de tela ou pressione <span className="text-primary font-mono font-bold">Ctrl + V</span> para colar diretamente uma imagem da área de transferência. O pipeline de Redstone YOLO realiza a segmentação de contornos pixelados instantaneamente.
+            {language === 'pt' 
+              ? 'Mapeie o contorno das ameaças hostis. Envie capturas de tela ou pressione Ctrl + V para colar diretamente uma imagem da área de transferência. O pipeline de Redstone YOLO realiza a segmentação de contornos pixelados instantaneamente.'
+              : 'Map the contours of hostile threats. Upload screenshots or press Ctrl + V to paste an image directly from the clipboard. The Redstone YOLO pipeline performs pixelated contour segmentation instantly.'}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-2">
@@ -647,7 +651,7 @@ export default function DetectorPanel({
               className="px-6 py-3.5 bg-primary hover:bg-emerald-400 text-black font-mono text-xs font-bold uppercase flex items-center justify-center gap-3 transition-all duration-200 cursor-pointer disabled:opacity-50"
             >
               <UploadCloud className="w-4 h-4" />
-              <span>ENVIAR OU COLAR (CTRL + V)</span>
+              <span>{language === 'pt' ? 'ENVIAR OU COLAR (CTRL + V)' : 'UPLOAD OR PASTE (CTRL + V)'}</span>
             </button>
           </div>
         </div>
@@ -661,10 +665,12 @@ export default function DetectorPanel({
 
           <h3 className="font-display text-base text-secondary uppercase font-bold tracking-wider mb-3 flex items-center gap-2">
             <Radar className="w-4 h-4 text-secondary" />
-            <span>Varreduras de Teste Rapido</span>
+            <span>{language === 'pt' ? 'Varreduras de Teste Rápido' : 'Quick Test Scans'}</span>
           </h3>
           <p className="font-sans text-xs text-gray-400 leading-relaxed mb-4 font-normal">
-            Não tem uma captura disponível? Clique em um dos cenários abaixo para rodar o pipeline com dados de teste integrados:
+            {language === 'pt'
+              ? 'Não tem uma captura disponível? Clique em um dos cenários abaixo para rodar o pipeline com dados de teste integrados:'
+              : 'Don\'t have a screenshot available? Click one of the scenarios below to run the pipeline with built-in test data:'}
           </p>
           <div className="grid grid-cols-2 gap-3">
             {PRESET_SCANS.map((p, i) => (
@@ -691,7 +697,7 @@ export default function DetectorPanel({
             <div className="flex items-center justify-between border-b border-[#222222] pb-3">
               <div className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 bg-primary rounded-full animate-ping"></span>
-                <h2 className="font-display text-lg text-white font-bold uppercase tracking-wider">Visor Optico Principal</h2>
+                <h2 className="font-display text-lg text-white font-bold uppercase tracking-wider">{language === 'pt' ? 'Visor Optico Principal' : 'Main Optical Viewport'}</h2>
               </div>
               <div className="flex items-center gap-2">
                 <span className={`text-[10px] font-mono px-2 py-0.5 border uppercase ${
@@ -699,17 +705,17 @@ export default function DetectorPanel({
                     ? 'text-primary bg-primary/5 border-primary/20' 
                     : 'text-amber-500 bg-amber-500/5 border-amber-500/20'
                 }`}>
-                  {serverMode === 'real' ? 'Servidor Real' : 'Simulação Offline'}
+                  {serverMode === 'real' ? t('server_real') : t('server_simulated')}
                 </span>
                 {serverMode === 'simulated' && (
                   <button 
                     onClick={() => {
                       setServerMode('real');
-                      alert('Conexão configurada para enviar requisições reais para: ' + API_BASE_URL);
+                      alert(language === 'pt' ? 'Conexão configurada para enviar requisições reais para: ' + API_BASE_URL : 'Connection configured to send real requests to: ' + API_BASE_URL);
                     }}
                     className="font-mono text-[10px] text-gray-500 hover:text-white underline cursor-pointer"
                   >
-                    Ativar Real
+                    {language === 'pt' ? 'Ativar Real' : 'Activate Real'}
                   </button>
                 )}
               </div>
@@ -825,7 +831,10 @@ export default function DetectorPanel({
                         return (
                           <g 
                             key={i} 
-                            onClick={() => setZoomedIndex(zoomedIndex === i ? null : i)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setZoomedIndex(zoomedIndex === i ? null : i);
+                            }}
                             className="cursor-pointer group/det"
                           >
                             {/* Full-box click target with transparent fill to catch mouse events */}
@@ -834,9 +843,14 @@ export default function DetectorPanel({
                               y={d.box[1]}
                               width={d.box[2] - d.box[0]}
                               height={d.box[3] - d.box[1]}
-                              fill="transparent"
+                              fill="#000000"
+                              fillOpacity={0}
                               pointerEvents="all"
                               className="cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setZoomedIndex(zoomedIndex === i ? null : i);
+                              }}
                             />
 
                             {/* 1. Draw Segmentation Contour */}
@@ -870,7 +884,7 @@ export default function DetectorPanel({
                                 <rect
                                   x={d.box[0]}
                                   y={Math.max(0, d.box[1] - 22)}
-                                  width={calculateTextWidth(d.class, d.confidence)}
+                                  width={calculateTextWidth(translateMob(d.class), d.confidence)}
                                   height="20"
                                   fill={color}
                                 />
@@ -883,7 +897,7 @@ export default function DetectorPanel({
                                   fontFamily="monospace"
                                   className="uppercase font-mono"
                                 >
-                                  {d.class} {Math.round(d.confidence * 100)}%
+                                  {translateMob(d.class)} {Math.round(d.confidence * 100)}%
                                 </text>
                               </g>
                             )}
@@ -975,43 +989,55 @@ export default function DetectorPanel({
                   const w = Math.round(d.box[2] - d.box[0]);
                   const h = Math.round(d.box[3] - d.box[1]);
                   const area = w * h;
-                  const distanceEst = area > 50000 ? 'MUITO PRÓXIMO (< 5m)' : area > 15000 ? 'DISTÂNCIA MÉDIA (5m - 15m)' : 'DISTANTE (> 15m)';
+                  const distanceEst = language === 'pt'
+                    ? (area > 50000 ? 'MUITO PRÓXIMO (< 5m)' : area > 15000 ? 'DISTÂNCIA MÉDIA (5m - 15m)' : 'DISTANTE (> 15m)')
+                    : (area > 50000 ? 'VERY CLOSE (< 5m)' : area > 15000 ? 'MEDIUM DISTANCE (5m - 15m)' : 'DISTANT (> 15m)');
                   
                   // Tactical combat advices based on mob class
-                  let tacticalAdvice = 'Firme posição e analise os padrões de aproximação.';
-                  if (d.class.includes('creeper')) {
-                    tacticalAdvice = 'ALERTA DE FUSÍVEL! Use combate à distância (Arco/Besta) ou afaste-se rápido se ele começar a chiar.';
-                  } else if (d.class.includes('zumbi') || d.class.includes('zombie')) {
-                    tacticalAdvice = 'Lento porém persistente. Ataques de recuo (knockback) limpam o perímetro facilmente.';
-                  } else if (d.class.includes('esqueleto') || d.class.includes('skeleton')) {
-                    tacticalAdvice = 'Atirador de elite. Avance com Escudo levantado ou ataque de forma rápida pelas costas.';
-                  } else if (d.class.includes('aranha') || d.class.includes('spider')) {
-                    tacticalAdvice = 'Altamente ágil. Ataque de cima ou levante sua guarda para bloquear o pulo frontal.';
+                  let tacticalAdvice = language === 'pt' 
+                    ? 'Firme posição e analise os padrões de aproximação.'
+                    : 'Hold position and analyze approach patterns.';
+                  if (d.class.toLowerCase().includes('creeper')) {
+                    tacticalAdvice = language === 'pt'
+                      ? 'ALERTA DE FUSÍVEL! Use combate à distância (Arco/Besta) ou afaste-se rápido se ele começar a chiar.'
+                      : 'FUSE ALERT! Use ranged combat (Bow/Crossbow) or step back quickly if it starts hissing.';
+                  } else if (d.class.toLowerCase().includes('zumbi') || d.class.toLowerCase().includes('zombie')) {
+                    tacticalAdvice = language === 'pt'
+                      ? 'Lento porém persistente. Ataques de recuo (knockback) limpam o perímetro facilmente.'
+                      : 'Slow but persistent. Knockback attacks clear the perimeter easily.';
+                  } else if (d.class.toLowerCase().includes('esqueleto') || d.class.toLowerCase().includes('skeleton')) {
+                    tacticalAdvice = language === 'pt'
+                      ? 'Atirador de elite. Avance com Escudo levantado ou ataque de forma rápida pelas costas.'
+                      : 'Elite marksman. Advance with Shield raised or attack quickly from behind.';
+                  } else if (d.class.toLowerCase().includes('aranha') || d.class.toLowerCase().includes('spider') || d.class.toLowerCase().includes('cave_spider')) {
+                    tacticalAdvice = language === 'pt'
+                      ? 'Altamente ágil. Ataque de cima ou levante sua guarda para bloquear o pulo frontal.'
+                      : 'Highly agile. Attack from above or raise your guard to block the frontal leap.';
                   }
 
                   return (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div className="bg-[#161616] p-3 border border-[#222222]">
-                          <span className="text-[8px] text-gray-500 block uppercase font-mono">Entidade</span>
+                          <span className="text-[8px] text-gray-500 block uppercase font-mono">{t('entity_lbl')}</span>
                           <span className="text-white text-xs font-bold uppercase font-mono" style={{ color: color }}>
-                            {d.class}
+                            {translateMob(d.class)}
                           </span>
                         </div>
                         <div className="bg-[#161616] p-3 border border-[#222222]">
-                          <span className="text-[8px] text-gray-500 block uppercase font-mono">Assinatura de Área</span>
+                          <span className="text-[8px] text-gray-500 block uppercase font-mono">{t('signature_lbl')}</span>
                           <span className="text-white text-xs font-bold font-mono">
                             {w}x{h} px
                           </span>
                         </div>
                         <div className="bg-[#161616] p-3 border border-[#222222]">
-                          <span className="text-[8px] text-gray-500 block uppercase font-mono">Aproximação Est.</span>
+                          <span className="text-[8px] text-gray-500 block uppercase font-mono">{t('approach_lbl')}</span>
                           <span className="text-primary text-[10px] font-bold font-mono">
                             {distanceEst}
                           </span>
                         </div>
                         <div className="bg-[#161616] p-3 border border-[#222222]">
-                          <span className="text-[8px] text-gray-500 block uppercase font-mono">Confidência</span>
+                          <span className="text-[8px] text-gray-500 block uppercase font-mono">{t('confidence_lbl')}</span>
                           <span className="text-secondary text-xs font-bold font-mono">
                             {Math.round(d.confidence * 100)}%
                           </span>
@@ -1019,7 +1045,7 @@ export default function DetectorPanel({
                       </div>
 
                       <div className="p-3 bg-black/40 border border-[#222222] space-y-1">
-                        <span className="text-[8px] text-red-400 block uppercase font-mono font-bold">RECOMENDAÇÃO TÁTICA</span>
+                        <span className="text-[8px] text-red-400 block uppercase font-mono font-bold">{t('recommendation')}</span>
                         <p className="text-xs text-gray-300 leading-relaxed font-sans">
                           {tacticalAdvice}
                         </p>
@@ -1032,7 +1058,7 @@ export default function DetectorPanel({
                           }}
                           className="px-4 py-2 bg-primary hover:bg-emerald-400 text-black font-mono text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
                         >
-                          ABRIR WIKI COMPLETA →
+                          {t('open_wiki')}
                         </button>
                       </div>
                     </div>
@@ -1050,13 +1076,13 @@ export default function DetectorPanel({
               
               <div className="flex items-center gap-2 border-b border-[#222222] pb-3">
                 <Layers className="w-4 h-4 text-primary" />
-                <span className="font-mono text-xs text-white font-bold uppercase tracking-wider">Modos de Visualização & Pipeline</span>
+                <span className="font-mono text-xs text-white font-bold uppercase tracking-wider">{language === 'pt' ? 'Modos de Visualização & Pipeline' : 'View Modes & Pipeline'}</span>
               </div>
 
               {/* View Modes Selector (Modos de Visualização) */}
               <div className="space-y-3">
                 <label className="font-mono text-[10px] text-gray-400 uppercase tracking-wider block">
-                  Alternar Visualização
+                  {language === 'pt' ? 'Alternar Visualização' : 'Toggle View Mode'}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <button
@@ -1067,7 +1093,7 @@ export default function DetectorPanel({
                         : 'bg-[#161616] text-gray-400 border-[#262626] hover:border-gray-500'
                     }`}
                   >
-                    CAIXAS ENQUADRADAS
+                    {language === 'pt' ? 'CAIXAS ENQUADRADAS' : 'BOUNDING BOXES'}
                   </button>
                   <button
                     onClick={() => setViewMode('highlight')}
@@ -1077,7 +1103,7 @@ export default function DetectorPanel({
                         : 'bg-[#161616] text-gray-400 border-[#262626] hover:border-gray-500'
                     }`}
                   >
-                    FOCO / DESTAQUE (SPOTLIGHT)
+                    {language === 'pt' ? 'FOCO / DESTAQUE (SPOTLIGHT)' : 'SPOTLIGHT'}
                   </button>
                   <button
                     onClick={() => setViewMode('overlay')}
@@ -1087,7 +1113,7 @@ export default function DetectorPanel({
                         : 'bg-[#161616] text-gray-400 border-[#262626] hover:border-gray-500'
                     }`}
                   >
-                    MÁSCARA COLORIDA (OVERLAY)
+                    {language === 'pt' ? 'MÁSCARA COLORIDA (OVERLAY)' : 'COLOR OVERLAY'}
                   </button>
                 </div>
               </div>
@@ -1095,7 +1121,7 @@ export default function DetectorPanel({
               {/* Confidence Threshold Slider */}
               <div className="bg-[#161616] p-4 border border-[#222222] space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[9px] text-gray-400 uppercase block tracking-wider">FILTRO DE CONFIDÊNCIA DO SENSOR</span>
+                  <span className="font-mono text-[9px] text-gray-400 uppercase block tracking-wider">{language === 'pt' ? 'FILTRO DE CONFIDÊNCIA DO SENSOR' : 'SENSOR CONFIDENCE FILTER'}</span>
                   <span className="font-mono text-xs text-primary font-bold">{confidenceThreshold}%</span>
                 </div>
                 <input 
@@ -1106,7 +1132,7 @@ export default function DetectorPanel({
                   onChange={(e) => setConfidenceThreshold(parseInt(e.target.value))}
                   className="w-full accent-primary bg-[#222222] h-1"
                 />
-                <span className="font-mono text-[8px] text-gray-500 block">Esconde detecções abaixo desta probabilidade de acerto</span>
+                <span className="font-mono text-[8px] text-gray-500 block">{language === 'pt' ? 'Esconde detecções abaixo desta probabilidade de acerto' : 'Hides detections below this probability threshold'}</span>
               </div>
             </div>
           </div>
@@ -1121,7 +1147,7 @@ export default function DetectorPanel({
 
               <h3 className="font-display text-base text-secondary font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
                 <Layers className="w-4 h-4" />
-                <span>Legenda do Radar de Mobs</span>
+                <span>{language === 'pt' ? 'Legenda do Radar de Mobs' : 'Mob Radar Legend'}</span>
               </h3>
 
               {activeScanResult && apiData ? (
@@ -1131,7 +1157,7 @@ export default function DetectorPanel({
                   <div className="space-y-3">
                     {apiData.detections.length === 0 ? (
                       <div className="text-center py-8 text-gray-500 text-xs font-mono border border-dashed border-[#333] p-4 uppercase">
-                        Nenhum mob detectado nesta captura.
+                        {language === 'pt' ? 'Nenhum mob detectado nesta captura.' : 'No mobs detected in this capture.'}
                       </div>
                     ) : (
                       apiData.detections.map((d, idx) => {
@@ -1166,23 +1192,23 @@ export default function DetectorPanel({
                                 <h4 className={`text-xs font-bold uppercase tracking-wider transition-colors ${
                                   zoomedIndex === idx ? 'text-primary' : 'text-white group-hover/legend:text-primary'
                                 }`}>
-                                  {d.class}
+                                  {translateMob(d.class)}
                                 </h4>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-xs text-primary font-bold">{Math.round(d.confidence * 100)}% CONFIANÇA</span>
+                                <span className="text-xs text-primary font-bold">{Math.round(d.confidence * 100)}% {language === 'pt' ? 'CONFIANÇA' : 'CONFIDENCE'}</span>
                               </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-400 border-t border-[#222222]/60 pt-2 font-mono">
                               <div>
-                                <span className="text-gray-500 uppercase block text-[8px]">Enquadramento Box</span>
+                                <span className="text-gray-500 uppercase block text-[8px]">{language === 'pt' ? 'Enquadramento Box' : 'Bounding Box'}</span>
                                 <span className="text-white">[{d.box.map(Math.round).join(', ')}]</span>
                               </div>
                               <div>
-                                <span className="text-gray-500 uppercase block text-[8px]">Pontos Polígono</span>
+                                <span className="text-gray-500 uppercase block text-[8px]">{language === 'pt' ? 'Pontos Polígono' : 'Polygon Points'}</span>
                                 <span className="text-primary font-bold">
-                                  {hasPolygon ? `${d.polygon.length} vértices` : 'Sem máscara'}
+                                  {hasPolygon ? `${d.polygon.length} ${language === 'pt' ? 'vértices' : 'vertices'}` : (language === 'pt' ? 'Sem máscara' : 'No mask')}
                                 </span>
                               </div>
                             </div>
@@ -1205,7 +1231,7 @@ export default function DetectorPanel({
                                 }}
                                 className="px-2 py-1 bg-black/80 hover:bg-primary hover:text-black border border-[#333] hover:border-primary font-mono text-[8.5px] text-gray-400 hover:font-bold transition-all uppercase cursor-pointer flex items-center gap-1"
                               >
-                                <span>ABRIR WIKI</span>
+                                <span>{t('open_wiki_short')}</span>
                               </button>
                               
                               <button
@@ -1219,7 +1245,7 @@ export default function DetectorPanel({
                                     : 'bg-black text-gray-400 border-[#333] hover:border-primary hover:text-primary'
                                 }`}
                               >
-                                <span>{zoomedIndex === idx ? 'VISÃO GLOBAL' : 'FOCAR ALVO'}</span>
+                                <span>{zoomedIndex === idx ? t('global_view') : t('focus_target')}</span>
                               </button>
                             </div>
                           </div>
@@ -1231,15 +1257,15 @@ export default function DetectorPanel({
                   {/* Summary row */}
                   <div className="grid grid-cols-2 gap-4 border-t border-[#222222] pt-4 text-xs">
                     <div>
-                      <span className="text-gray-500 block uppercase tracking-wider text-[10px]">GRAU DE RISCO</span>
+                      <span className="text-gray-500 block uppercase tracking-wider text-[10px]">{language === 'pt' ? 'GRAU DE RISCO' : 'RISK LEVEL'}</span>
                       <span className={`text-sm font-bold ${
                         activeScanResult.threatLevel === 'CRÍTICO' ? 'text-red-500' :
                         activeScanResult.threatLevel === 'ALTO' ? 'text-amber-500' : 'text-primary'
-                      }`}>{activeScanResult.threatLevel}</span>
+                      }`}>{activeScanResult.threatLevel === 'CRÍTICO' && language === 'en' ? 'CRITICAL' : activeScanResult.threatLevel === 'ALTO' && language === 'en' ? 'HIGH' : activeScanResult.threatLevel}</span>
                     </div>
 
                     <div>
-                      <span className="text-gray-500 block uppercase tracking-wider text-[10px]">TOTAL CATALOGADO</span>
+                      <span className="text-gray-500 block uppercase tracking-wider text-[10px]">{language === 'pt' ? 'TOTAL CATALOGADO' : 'TOTAL CATALOGED'}</span>
                       <span className="text-sm text-primary font-bold">
                         {apiData.detections.filter(b => b.confidence * 100 >= confidenceThreshold).length} Mobs
                       </span>
@@ -1262,7 +1288,7 @@ export default function DetectorPanel({
                       className="flex-1 bg-[#161616] text-gray-300 hover:text-primary py-3 border border-[#333333] hover:border-primary text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>EXPORTAR JSON</span>
+                      <span>{language === 'pt' ? 'EXPORTAR JSON' : 'EXPORT JSON'}</span>
                     </button>
                     <button 
                       onClick={() => {
@@ -1273,13 +1299,13 @@ export default function DetectorPanel({
                       }}
                       className="px-4 bg-red-950/20 hover:bg-red-900/30 text-red-400 py-3 border border-red-900/30 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
                     >
-                      LIMPAR
+                      {language === 'pt' ? 'LIMPAR' : 'CLEAR'}
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="text-center py-12 text-gray-600 text-xs tracking-wider uppercase">
-                  AGUARDANDO PROCESSO DO SCANNER...
+                  {language === 'pt' ? 'AGUARDANDO PROCESSO DO SCANNER...' : 'WAITING FOR SCANNER PROCESS...'}
                 </div>
               )}
             </div>
