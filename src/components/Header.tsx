@@ -29,7 +29,7 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
         >
           <YolocraftLogo className="w-10 h-10 sm:w-14 sm:h-14" />
           <span className="font-display text-lg sm:text-2xl font-bold text-white tracking-tighter flex items-center">
-            YOLOCraft <span className="text-primary font-mono text-xs ml-1.5 sm:ml-2">v2.4</span>
+            YOLOCraft
           </span>
         </div>
 

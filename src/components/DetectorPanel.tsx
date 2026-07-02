@@ -233,6 +233,7 @@ export default function DetectorPanel({
   onViewMobDetails
 }: DetectorPanelProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [scanStepText, setScanStepText] = useState('AGUARDANDO ENTRADA');
@@ -257,9 +258,18 @@ export default function DetectorPanel({
   useEffect(() => {
     // Default to real server mode using the provided ngrok API url
     setServerMode('real');
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setZoomedIndex(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       if (liveInterval) clearInterval(liveInterval);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
@@ -267,6 +277,7 @@ export default function DetectorPanel({
     if (externalLoadScan) {
       setSelectedImage(externalLoadScan.imageUrl);
       setActiveScanResult(externalLoadScan);
+      setZoomedIndex(null);
       setApiData(externalLoadScan.apiResponse || {
         width: 800,
         height: 450,
@@ -346,6 +357,7 @@ export default function DetectorPanel({
   function processFile(file: File) {
     setErrorMessage(null);
     setIsLive(false);
+    setZoomedIndex(null);
     
     const imageUrl = URL.createObjectURL(file);
     setSelectedImage(imageUrl);
@@ -537,6 +549,7 @@ export default function DetectorPanel({
   const loadPreset = (preset: typeof PRESET_SCANS[0]) => {
     setErrorMessage(null);
     setIsLive(false);
+    setZoomedIndex(null);
     setSelectedImage(preset.imageUrl);
     setIsScanning(true);
     setScanProgress(20);
@@ -585,6 +598,7 @@ export default function DetectorPanel({
   };
 
   const toggleLiveStream = () => {
+    setZoomedIndex(null);
     if (isLive) {
       setIsLive(false);
       if (liveInterval) clearInterval(liveInterval);
@@ -724,125 +738,297 @@ export default function DetectorPanel({
               )}
 
               {/* Responsive SVG Viewer with raw coordinate tracking */}
-              {selectedImage && apiData && !isScanning && (
-                <div className="w-full h-full relative flex items-center justify-center bg-black">
-                  <svg 
-                    viewBox={`0 0 ${apiData.width} ${apiData.height}`} 
-                    className="w-full h-full object-contain select-none"
-                  >
-                    <defs>
-                      {/* Mask for dimming background and keeping polygon at 100% brightness */}
-                      {viewMode === 'highlight' && (
-                        <mask id="spotlight-mask">
-                          {/* Fill white means fully dimmed */}
-                          <rect x="0" y="0" width={apiData.width} height={apiData.height} fill="white" />
-                          {/* Draw black polygon overlay holes to bypass the mask and shine at full brightness */}
-                          {apiData.detections.map((d, i) => {
-                            if (d.confidence * 100 < confidenceThreshold) return null;
-                            if (!d.polygon || d.polygon.length === 0) return null;
-                            return (
-                              <polygon 
-                                key={i} 
-                                points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')} 
-                                fill="black" 
-                              />
-                            );
-                          })}
-                        </mask>
-                      )}
-                    </defs>
+              {(() => {
+                if (!selectedImage || !apiData || isScanning) return null;
 
-                    {/* Ground Image */}
-                    <image 
-                      href={selectedImage} 
-                      width={apiData.width} 
-                      height={apiData.height} 
-                    />
+                // Dynamic viewBox calculation for zoom
+                let viewBoxVal = `0 0 ${apiData.width} ${apiData.height}`;
+                if (zoomedIndex !== null && apiData.detections[zoomedIndex]) {
+                  const d = apiData.detections[zoomedIndex];
+                  const x1 = d.box[0];
+                  const y1 = d.box[1];
+                  const x2 = d.box[2];
+                  const y2 = d.box[3];
+                  const boxW = x2 - x1;
+                  const boxH = y2 - y1;
+                  
+                  // Calculate zoom box with padding
+                  const paddingX = Math.max(35, boxW * 0.35);
+                  const paddingY = Math.max(35, boxH * 0.35);
+                  
+                  const zoomX = Math.max(0, x1 - paddingX);
+                  const zoomY = Math.max(0, y1 - paddingY);
+                  const zoomW = Math.min(apiData.width - zoomX, boxW + paddingX * 2);
+                  const zoomH = Math.min(apiData.height - zoomY, boxH + paddingY * 2);
+                  
+                  viewBoxVal = `${zoomX} ${zoomY} ${zoomW} ${zoomH}`;
+                }
 
-                    {/* Dim Overlay Rect */}
-                    {viewMode === 'highlight' && (
-                      <rect 
-                        x="0" 
-                        y="0" 
+                return (
+                  <div className="w-full h-full relative flex items-center justify-center bg-black">
+                    <motion.svg 
+                      viewBox={viewBoxVal}
+                      layout
+                      transition={{ type: 'spring', stiffness: 90, damping: 20 }}
+                      className="w-full h-full object-contain select-none"
+                    >
+                      <defs>
+                        {/* Mask for dimming background and keeping polygon at 100% brightness */}
+                        {viewMode === 'highlight' && (
+                          <mask id="spotlight-mask">
+                            {/* Fill white means fully dimmed */}
+                            <rect x="0" y="0" width={apiData.width} height={apiData.height} fill="white" />
+                            {/* Draw black polygon overlay holes to bypass the mask and shine at full brightness */}
+                            {apiData.detections.map((d, i) => {
+                              if (d.confidence * 100 < confidenceThreshold) return null;
+                              if (!d.polygon || d.polygon.length === 0) return null;
+                              return (
+                                <polygon 
+                                  key={i} 
+                                  points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')} 
+                                  fill="black" 
+                                />
+                              );
+                            })}
+                          </mask>
+                        )}
+                      </defs>
+
+                      {/* Ground Image */}
+                      <image 
+                        href={selectedImage} 
                         width={apiData.width} 
                         height={apiData.height} 
-                        fill="rgba(0, 0, 0, 0.7)" 
-                        mask="url(#spotlight-mask)" 
                       />
-                    )}
 
-                    {/* Draw Detections layer */}
-                    {apiData.detections.map((d, i) => {
-                      const isFiltered = d.confidence * 100 < confidenceThreshold;
-                      if (isFiltered) return null;
+                      {/* Dim Overlay Rect */}
+                      {viewMode === 'highlight' && (
+                        <rect 
+                          x="0" 
+                          y="0" 
+                          width={apiData.width} 
+                          height={apiData.height} 
+                          fill="rgba(0, 0, 0, 0.7)" 
+                          mask="url(#spotlight-mask)" 
+                        />
+                      )}
 
-                      const color = getClassColor(d.class);
-                      const hasPolygon = d.polygon && d.polygon.length > 0;
+                      {/* Draw Detections layer */}
+                      {apiData.detections.map((d, i) => {
+                        const isFiltered = d.confidence * 100 < confidenceThreshold;
+                        if (isFiltered) return null;
 
-                      return (
-                        <g key={i}>
-                          {/* 1. Draw Segmentation Contour */}
-                          {hasPolygon && (viewMode === 'overlay' || viewMode === 'highlight') && (
-                            <polygon
-                              points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')}
-                              fill={viewMode === 'highlight' ? 'none' : `${color}4D`}
-                              stroke={color}
-                              strokeWidth="3"
-                              className="transition-all duration-200"
-                            />
-                          )}
+                        const color = getClassColor(d.class);
+                        const hasPolygon = d.polygon && d.polygon.length > 0;
+                        const isZoomed = zoomedIndex === i;
 
-                          {/* 2. Draw Classic Bounding Box */}
-                          {(viewMode === 'bbox' || (!hasPolygon && (viewMode === 'overlay' || viewMode === 'highlight'))) && (
-                            <rect
-                              x={d.box[0]}
-                              y={d.box[1]}
-                              width={d.box[2] - d.box[0]}
-                              height={d.box[3] - d.box[1]}
-                              fill="none"
-                              stroke={color}
-                              strokeWidth="2"
-                              className="transition-all duration-200"
-                            />
-                          )}
+                        return (
+                          <g 
+                            key={i} 
+                            onClick={() => setZoomedIndex(zoomedIndex === i ? null : i)}
+                            className="cursor-pointer group/det"
+                          >
+                            {/* 1. Draw Segmentation Contour */}
+                            {hasPolygon && (viewMode === 'overlay' || viewMode === 'highlight') && (
+                              <polygon
+                                points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')}
+                                fill={viewMode === 'highlight' ? 'none' : `${color}4D`}
+                                stroke={color}
+                                strokeWidth={isZoomed ? "4" : "3"}
+                                className="transition-all duration-200 group-hover/det:stroke-[4px]"
+                              />
+                            )}
 
-                          {/* 3. Label Tag above target */}
-                          {viewMode !== 'highlight' && (
-                            <g>
+                            {/* 2. Draw Classic Bounding Box */}
+                            {(viewMode === 'bbox' || (!hasPolygon && (viewMode === 'overlay' || viewMode === 'highlight'))) && (
                               <rect
                                 x={d.box[0]}
-                                y={Math.max(0, d.box[1] - 22)}
-                                width={calculateTextWidth(d.class, d.confidence)}
-                                height="20"
-                                fill={color}
+                                y={d.box[1]}
+                                width={d.box[2] - d.box[0]}
+                                height={d.box[3] - d.box[1]}
+                                fill="none"
+                                stroke={color}
+                                strokeWidth={isZoomed ? "3" : "2"}
+                                className="transition-all duration-200 group-hover/det:stroke-[3px]"
                               />
-                              <text
-                                x={d.box[0] + 6}
-                                y={Math.max(14, d.box[1] - 8)}
-                                fill="#000000"
-                                fontSize="10.5"
-                                fontWeight="bold"
-                                fontFamily="monospace"
-                                className="uppercase font-mono"
-                              >
-                                {d.class} {Math.round(d.confidence * 100)}%
-                              </text>
-                            </g>
-                          )}
-                        </g>
-                      );
-                    })}
-                  </svg>
-                  
-                  {errorMessage && (
-                    <div className="absolute bottom-4 left-4 right-4 bg-red-950/90 border border-red-500/30 p-3 text-red-300 font-mono text-[10px] uppercase flex gap-2 items-center">
-                      <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-                      <span>{errorMessage}</span>
-                    </div>
-                  )}
-                </div>
-              )}
+                            )}
+
+                            {/* 3. Label Tag above target */}
+                            {viewMode !== 'highlight' && (
+                              <g>
+                                <rect
+                                  x={d.box[0]}
+                                  y={Math.max(0, d.box[1] - 22)}
+                                  width={calculateTextWidth(d.class, d.confidence)}
+                                  height="20"
+                                  fill={color}
+                                />
+                                <text
+                                  x={d.box[0] + 6}
+                                  y={Math.max(14, d.box[1] - 8)}
+                                  fill="#000000"
+                                  fontSize="10.5"
+                                  fontWeight="bold"
+                                  fontFamily="monospace"
+                                  className="uppercase font-mono"
+                                >
+                                  {d.class} {Math.round(d.confidence * 100)}%
+                                </text>
+                              </g>
+                            )}
+
+                            {/* 4. Target Lock On Indicator HUD (Only shown when zoomed) */}
+                            {isZoomed && (
+                              <g className="animate-pulse">
+                                {/* Outer bounding corners or crosshair */}
+                                <rect
+                                  x={d.box[0] - 10}
+                                  y={d.box[1] - 10}
+                                  width={d.box[2] - d.box[0] + 20}
+                                  height={d.box[3] - d.box[1] + 20}
+                                  fill="none"
+                                  stroke={color}
+                                  strokeWidth="2"
+                                  strokeDasharray="6,6"
+                                />
+                                <text
+                                  x={d.box[2] + 12}
+                                  y={d.box[1] + 15}
+                                  fill={color}
+                                  fontSize="9"
+                                  fontWeight="bold"
+                                  fontFamily="monospace"
+                                  className="uppercase font-mono tracking-widest fill-current drop-shadow-md"
+                                >
+                                  TARGET_LOCK
+                                </text>
+                              </g>
+                            )}
+                          </g>
+                        );
+                      })}
+                    </motion.svg>
+
+                    {zoomedIndex !== null && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setZoomedIndex(null);
+                        }}
+                        className="absolute top-4 right-4 bg-primary hover:bg-emerald-400 text-black font-mono text-[9px] px-2.5 py-1.5 border border-primary font-bold transition-all flex items-center gap-1 cursor-pointer z-10 uppercase tracking-wider shadow-lg"
+                      >
+                        <span>Visão Global [ESC]</span>
+                      </button>
+                    )}
+
+                    {errorMessage && (
+                      <div className="absolute bottom-4 left-4 right-4 bg-red-950/90 border border-red-500/30 p-3 text-red-300 font-mono text-[10px] uppercase flex gap-2 items-center">
+                        <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                        <span>{errorMessage}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
+
+            {/* TACTICAL ZOOM INFO PANEL */}
+            {zoomedIndex !== null && apiData && apiData.detections[zoomedIndex] && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="bg-[#111111] p-5 border-l-4 border-primary border border-y-[#333333] border-r-[#333333] relative space-y-4"
+              >
+                <div className="corner-bracket-tr"></div>
+                <div className="corner-bracket-br"></div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                    <h3 className="font-display text-sm font-bold text-white tracking-wider uppercase">
+                      TELEMETRIA DE ALVO TRANCADO
+                    </h3>
+                  </div>
+                  <button 
+                    onClick={() => setZoomedIndex(null)}
+                    className="font-mono text-[9px] text-gray-500 hover:text-white uppercase underline cursor-pointer"
+                  >
+                    RESTAURAR VISÃO GLOBAL [ESC]
+                  </button>
+                </div>
+
+                {(() => {
+                  const d = apiData.detections[zoomedIndex];
+                  const color = getClassColor(d.class);
+                  const w = Math.round(d.box[2] - d.box[0]);
+                  const h = Math.round(d.box[3] - d.box[1]);
+                  const area = w * h;
+                  const distanceEst = area > 50000 ? 'MUITO PRÓXIMO (< 5m)' : area > 15000 ? 'DISTÂNCIA MÉDIA (5m - 15m)' : 'DISTANTE (> 15m)';
+                  
+                  // Tactical combat advices based on mob class
+                  let tacticalAdvice = 'Firme posição e analise os padrões de aproximação.';
+                  if (d.class.includes('creeper')) {
+                    tacticalAdvice = 'ALERTA DE FUSÍVEL! Use combate à distância (Arco/Besta) ou afaste-se rápido se ele começar a chiar.';
+                  } else if (d.class.includes('zumbi') || d.class.includes('zombie')) {
+                    tacticalAdvice = 'Lento porém persistente. Ataques de recuo (knockback) limpam o perímetro facilmente.';
+                  } else if (d.class.includes('esqueleto') || d.class.includes('skeleton')) {
+                    tacticalAdvice = 'Atirador de elite. Avance com Escudo levantado ou ataque de forma rápida pelas costas.';
+                  } else if (d.class.includes('aranha') || d.class.includes('spider')) {
+                    tacticalAdvice = 'Altamente ágil. Ataque de cima ou levante sua guarda para bloquear o pulo frontal.';
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="bg-[#161616] p-3 border border-[#222222]">
+                          <span className="text-[8px] text-gray-500 block uppercase font-mono">Entidade</span>
+                          <span className="text-white text-xs font-bold uppercase font-mono" style={{ color: color }}>
+                            {d.class}
+                          </span>
+                        </div>
+                        <div className="bg-[#161616] p-3 border border-[#222222]">
+                          <span className="text-[8px] text-gray-500 block uppercase font-mono">Assinatura de Área</span>
+                          <span className="text-white text-xs font-bold font-mono">
+                            {w}x{h} px
+                          </span>
+                        </div>
+                        <div className="bg-[#161616] p-3 border border-[#222222]">
+                          <span className="text-[8px] text-gray-500 block uppercase font-mono">Aproximação Est.</span>
+                          <span className="text-primary text-[10px] font-bold font-mono">
+                            {distanceEst}
+                          </span>
+                        </div>
+                        <div className="bg-[#161616] p-3 border border-[#222222]">
+                          <span className="text-[8px] text-gray-500 block uppercase font-mono">Confidência</span>
+                          <span className="text-secondary text-xs font-bold font-mono">
+                            {Math.round(d.confidence * 100)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-black/40 border border-[#222222] space-y-1">
+                        <span className="text-[8px] text-red-400 block uppercase font-mono font-bold">RECOMENDAÇÃO TÁTICA</span>
+                        <p className="text-xs text-gray-300 leading-relaxed font-sans">
+                          {tacticalAdvice}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-3 justify-end pt-1">
+                        <button
+                          onClick={() => {
+                            if (onViewMobDetails) onViewMobDetails(d.class);
+                          }}
+                          className="px-4 py-2 bg-primary hover:bg-emerald-400 text-black font-mono text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                        >
+                          ABRIR WIKI COMPLETA →
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </motion.div>
+            )}
 
             {/* Real-time Computer Vision Control Panel */}
             <div className="bg-[#111111] p-6 border border-[#333333] space-y-6 relative">
@@ -947,26 +1133,32 @@ export default function DetectorPanel({
                         return (
                           <div 
                             key={idx} 
-                            onClick={() => {
-                              if (onViewMobDetails) {
-                                onViewMobDetails(d.class);
-                              }
-                            }}
-                            className="p-3 bg-[#161616] hover:bg-[#1f1f1f] hover:border-primary/50 cursor-pointer border border-[#222222] space-y-2 transition-all group/legend"
-                            title="Clique para abrir detalhes na Enciclopédia"
+                            onClick={() => setZoomedIndex(zoomedIndex === idx ? null : idx)}
+                            className={`p-3 cursor-pointer border space-y-2.5 transition-all group/legend relative overflow-hidden ${
+                              zoomedIndex === idx 
+                                ? 'bg-primary/10 border-primary' 
+                                : 'bg-[#161616] border-[#222222] hover:bg-[#1f1f1f] hover:border-primary/50'
+                            }`}
+                            title="Clique para dar zoom no Mob e ver detalhes"
                           >
+                            {/* Visual Indicator tab for active target */}
+                            {zoomedIndex === idx && (
+                              <div className="absolute top-0 bottom-0 left-0 w-1 bg-primary"></div>
+                            )}
+
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2.5">
                                 <div 
                                   className="w-3 h-3 border"
                                   style={{ backgroundColor: color, borderColor: color }}
                                 />
-                                <h4 className="text-white text-xs font-bold uppercase tracking-wider group-hover/legend:text-primary transition-colors">
+                                <h4 className={`text-xs font-bold uppercase tracking-wider transition-colors ${
+                                  zoomedIndex === idx ? 'text-primary' : 'text-white group-hover/legend:text-primary'
+                                }`}>
                                   {d.class}
                                 </h4>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-[8px] text-gray-500 group-hover/legend:text-primary transition-colors font-bold uppercase tracking-widest mr-2">VER DETALHES →</span>
                                 <span className="text-xs text-primary font-bold">{Math.round(d.confidence * 100)}% CONFIANÇA</span>
                               </div>
                             </div>
@@ -989,6 +1181,35 @@ export default function DetectorPanel({
                                 className="h-full bg-primary"
                                 style={{ width: `${d.confidence * 100}%` }}
                               />
+                            </div>
+
+                            {/* Action Row */}
+                            <div className="flex items-center justify-between border-t border-[#222222]/60 pt-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onViewMobDetails) {
+                                    onViewMobDetails(d.class);
+                                  }
+                                }}
+                                className="px-2 py-1 bg-black/80 hover:bg-primary hover:text-black border border-[#333] hover:border-primary font-mono text-[8.5px] text-gray-400 hover:font-bold transition-all uppercase cursor-pointer flex items-center gap-1"
+                              >
+                                <span>ABRIR WIKI</span>
+                              </button>
+                              
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setZoomedIndex(zoomedIndex === idx ? null : idx);
+                                }}
+                                className={`px-2 py-1 border font-mono text-[8.5px] font-bold transition-all uppercase cursor-pointer flex items-center gap-1 ${
+                                  zoomedIndex === idx 
+                                    ? 'bg-primary text-black border-primary' 
+                                    : 'bg-black text-gray-400 border-[#333] hover:border-primary hover:text-primary'
+                                }`}
+                              >
+                                <span>{zoomedIndex === idx ? 'VISÃO GLOBAL' : 'FOCAR ALVO'}</span>
+                              </button>
                             </div>
                           </div>
                         );

@@ -14,11 +14,12 @@ import {
   Sparkles,
   Info,
   ListFilter,
-  Play
+  Play,
+  Brain
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-type SubSection = 'visao-geral' | 'dataset' | 'estrutura' | 'modelo' | 'instalacao' | 'roadmap';
+type SubSection = 'visao-geral' | 'dataset' | 'yolo-redes' | 'estrutura' | 'modelo' | 'instalacao' | 'roadmap';
 
 export default function HowItWorks() {
   const [activeSubSection, setActiveSubSection] = useState<SubSection>('visao-geral');
@@ -33,6 +34,7 @@ export default function HowItWorks() {
   const navItems = [
     { id: 'visao-geral' as SubSection, label: 'Visão Geral', icon: BookOpen },
     { id: 'dataset' as SubSection, label: 'Dataset & Classes', icon: Database },
+    { id: 'yolo-redes' as SubSection, label: 'YOLO & Redes', icon: Brain },
     { id: 'estrutura' as SubSection, label: 'Estrutura do Projeto', icon: FolderTree },
     { id: 'modelo' as SubSection, label: 'Estado do Modelo', icon: Cpu },
     { id: 'instalacao' as SubSection, label: 'Instalação & Guia', icon: Terminal },
@@ -270,6 +272,135 @@ python -m src.detector_gui`
                     <span>ACESSAR DATASET KAGGLE</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
+                </div>
+              </div>
+            )}
+
+            {/* SUB-SECTION: YOLO & REDES NEURAIS */}
+            {activeSubSection === 'yolo-redes' && (
+              <div className="space-y-6">
+                <div className="border-b border-[#222222] pb-4">
+                  <h2 className="font-display text-2xl font-bold tracking-wider flex items-center gap-3">
+                    <Brain className="w-5 h-5 text-primary" />
+                    <span>ENTENDENDO REDES NEURAIS E YOLO</span>
+                  </h2>
+                  <p className="font-mono text-xs text-gray-500 mt-1 uppercase">O motor de Deep Learning por trás da detecção de mobs</p>
+                </div>
+
+                {/* Bloco 1: O que é uma Rede Neural */}
+                <div className="space-y-4">
+                  <h3 className="font-display text-sm font-bold tracking-wider text-white border-l-2 border-primary pl-2 uppercase">
+                    1. O que é uma Rede Neural Artificial?
+                  </h3>
+                  <p className="font-sans text-xs sm:text-sm text-gray-400 leading-relaxed">
+                    Uma <strong>Rede Neural Artificial</strong> é um modelo matemático computacional inspirado na estrutura neuronal do cérebro biológico. Ela foi concebida para aprender e aproximar funções complexas, reconhecendo padrões intrínsecos em grandes volumes de dados (como imagens de jogos).
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <div className="p-4 bg-[#141414] border border-[#222222] rounded-sm space-y-2">
+                      <div className="text-primary font-mono text-[10px] font-bold uppercase tracking-wider">Neurônios e Pesos</div>
+                      <p className="font-sans text-[11px] text-gray-400 leading-relaxed">
+                        Cada neurônio recebe entradas (características ou pixels), multiplica-as por <strong>Pesos (weights)</strong> ajustáveis e adiciona um <strong>Viés (bias)</strong>. Os pesos determinam a importância de cada sinal de entrada no resultado final.
+                      </p>
+                    </div>
+                    <div className="p-4 bg-[#141414] border border-[#222222] rounded-sm space-y-2">
+                      <div className="text-secondary font-mono text-[10px] font-bold uppercase tracking-wider">Funções de Ativação</div>
+                      <p className="font-sans text-[11px] text-gray-400 leading-relaxed">
+                        Para que a rede possa aprender padrões não lineares (como curvas, formas orgânicas e mobs voxelizados complexos), a saída de cada neurônio passa por uma <strong>Função de Ativação</strong> (ex: ReLU, SiLU).
+                      </p>
+                    </div>
+                    <div className="p-4 bg-[#141414] border border-[#222222] rounded-sm space-y-2">
+                      <div className="text-primary font-mono text-[10px] font-bold uppercase tracking-wider">Filtros Convolucionais</div>
+                      <p className="font-sans text-[11px] text-gray-400 leading-relaxed">
+                        Em imagens, usamos <strong>Camadas Convolucionais (CNNs)</strong>. Elas deslizam filtros pequenos sobre a imagem, aprendendo primeiro a extrair bordas simples, depois texturas e, finalmente, formas complexas como braços de Zombies e olhos de Creepers.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bloco 2: Como Funciona o YOLO */}
+                <div className="space-y-4 pt-4 border-t border-[#222222]">
+                  <h3 className="font-display text-sm font-bold tracking-wider text-white border-l-2 border-primary pl-2 uppercase">
+                    2. O Algoritmo YOLO — You Only Look Once
+                  </h3>
+                  <p className="font-sans text-xs sm:text-sm text-gray-400 leading-relaxed">
+                    Antes do algoritmo <strong>YOLO (Você Só Olha Uma Vez)</strong>, os sistemas de visão computacional detectavam objetos usando abordagens baseadas em propostas de regiões (como R-CNN), as quais selecionavam milhares de fatias da imagem e as processavam individualmente. Isso gerava uma latência absurda, inviabilizando aplicações em tempo real.
+                  </p>
+
+                  <div className="p-5 bg-black/60 border border-[#222222] rounded-sm space-y-4">
+                    <div className="flex items-center gap-2 text-[#4ade80]">
+                      <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                      <span className="font-display text-xs font-bold uppercase tracking-wider">Lógica de Passo Único (Single-Pass Model)</span>
+                    </div>
+                    
+                    <p className="font-sans text-xs text-gray-300 leading-relaxed">
+                      O YOLO reestruturou a detecção de objetos como um único problema de regressão matemática direta. A imagem de entrada é dividida em uma grade (ex: <code className="text-white bg-black/80 px-1 font-mono text-[11px]">S x S</code>). A rede analisa a imagem <strong>uma única vez</strong> e prevê simultaneamente:
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-4 text-xs font-mono">
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <span className="text-primary font-bold">▪</span>
+                        <span>Coordenadas das caixas (Bounding Boxes)</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <span className="text-primary font-bold">▪</span>
+                        <span>Probabilidade de classe por objeto</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <span className="text-primary font-bold">▪</span>
+                        <span>Pontuação de Confiança (Confidence Score)</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <span className="text-primary font-bold">▪</span>
+                        <span>Contornos poligonais (Segmentação SAM)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bloco 3: Ultralytics Credits */}
+                <div className="p-6 bg-primary/5 border border-primary/20 relative rounded-sm space-y-4 pt-6 mt-6">
+                  <div className="corner-bracket-tl"></div>
+                  <div className="corner-bracket-tr"></div>
+                  <div className="corner-bracket-bl"></div>
+                  <div className="corner-bracket-br"></div>
+
+                  <div className="flex items-center gap-2.5">
+                    <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
+                    <h3 className="font-display text-sm font-bold text-white tracking-wider uppercase">
+                      CRÉDITOS OFICIAIS: ULTRALYTICS
+                    </h3>
+                  </div>
+
+                  <p className="font-sans text-xs sm:text-sm text-gray-300 leading-relaxed">
+                    O pipeline de detecção e segmentação rápida de mobs do <strong>YOLOCraft</strong> é viabilizado pelo poder dos modelos desenvolvidos e mantidos de forma brilhante pela <strong>Ultralytics</strong>. 
+                  </p>
+                  
+                  <p className="font-sans text-xs text-gray-400 leading-relaxed">
+                    A Ultralytics é líder de mercado e pioneira em pesquisa de visão computacional, sendo a criadora e mantenedora oficial da arquitetura do <strong>YOLOv8</strong>, que implementa detecção, rastreamento de instâncias, classificação e segmentação em tempo real com excelente portabilidade para dispositivos periféricos e servidores em nuvem.
+                  </p>
+
+                  <div className="pt-2 flex flex-wrap gap-3">
+                    <a 
+                      href="https://ultralytics.com" 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-black hover:bg-primary border border-[#333333] hover:border-primary text-gray-300 hover:text-black font-mono text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer"
+                    >
+                      <span>PÁGINA DA ULTRALYTICS</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                    
+                    <a 
+                      href="https://github.com/ultralytics/ultralytics" 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-black hover:bg-secondary border border-[#333333] hover:border-secondary text-gray-300 hover:text-black font-mono text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer"
+                    >
+                      <span>GITHUB DA ULTRALYTICS</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
                 </div>
               </div>
             )}
