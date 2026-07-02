@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { MobEntity } from '../types';
 import { Shield, Skull, Target, HelpCircle, Heart, Swords, Activity } from 'lucide-react';
 
@@ -100,15 +101,39 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
 
   const candidates = getCandidates(entity.id);
   const [candidateIndex, setCandidateIndex] = useState(0);
+  const [providerIndex, setProviderIndex] = useState(0);
+
+  const providers = [
+    (file: string) => `https://images.weserv.nl/?url=https://minecraft.fandom.com/wiki/Special:FilePath/${file}`,
+    (file: string) => `https://minecraft.fandom.com/wiki/Special:FilePath/${file}`,
+    (file: string) => `https://images.weserv.nl/?url=https://minecraft.wiki/w/Special:FilePath/${file}`,
+    (file: string) => `https://minecraft.wiki/w/Special:FilePath/${file}`,
+  ];
 
   const currentFilename = candidates[candidateIndex] || `${entity.id}.gif`;
-  const imageUrl = `https://minecraft.wiki/w/Special:FilePath/${currentFilename}`;
+  const imageUrl = providers[providerIndex] 
+    ? providers[providerIndex](currentFilename) 
+    : `https://minecraft.fandom.com/wiki/Special:FilePath/${currentFilename}`;
 
   const handleImageError = () => {
-    if (candidateIndex < candidates.length - 1) {
+    if (providerIndex < providers.length - 1) {
+      setProviderIndex(prev => prev + 1);
+    } else if (candidateIndex < candidates.length - 1) {
       setCandidateIndex(prev => prev + 1);
+      setProviderIndex(0);
     }
   };
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isModalOpen]);
 
   // Map entity type to custom background styles for high-tech tags
   const typeColors: { [key: string]: { border: string; bg: string; text: string } } = {
@@ -204,7 +229,7 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
       </div>
 
       {/* Detail Modal Dialog */}
-      {isModalOpen && (
+      {isModalOpen && createPortal(
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 animate-fade-in" onClick={() => setIsModalOpen(false)}>
           <div className="w-full max-w-lg bg-[#111111] border border-[#333333] p-6 text-on-background relative flex flex-col gap-5" onClick={(e) => e.stopPropagation()}>
             {/* Corner Bracket Elements */}
@@ -297,7 +322,8 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
