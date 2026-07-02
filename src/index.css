@@ -8,6 +8,7 @@
 
 .font-minecraft, .font-display {
   font-family: 'Minecraft', "VT323", "Silkscreen", monospace !important;
+  letter-spacing: 0.08em;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&family=VT323&display=swap');

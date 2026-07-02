@@ -612,8 +612,8 @@ export default function DetectorPanel({
             <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
             <span>SISTEMA INTEGRADO YOLO V8 + POLYGON MASKS</span>
           </div>
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white font-bold leading-none uppercase tracking-tight select-none">
-            Analise de Mobs <br /> <span className="text-primary font-display">YOLOCraft</span>
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white font-bold leading-normal tracking-[0.18em] select-none">
+            ANALISE DE MOBS <br /> <span className="text-primary font-display">YOLOCraft</span>
           </h1>
           <p className="font-sans text-gray-400 text-sm sm:text-base max-w-xl leading-relaxed">
             Mapeie o contorno das ameaças hostis. Envie capturas de tela ou pressione <span className="text-primary font-mono font-bold">Ctrl + V</span> para colar diretamente uma imagem da área de transferência. O pipeline de Redstone YOLO realiza a segmentação de contornos pixelados instantaneamente.

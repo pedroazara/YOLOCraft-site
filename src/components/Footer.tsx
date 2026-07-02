@@ -7,8 +7,8 @@ export default function Footer() {
     <footer className="w-full mt-24 border-t border-[#222222] bg-[#0c0c0c]">
       <div className="w-full flex flex-col md:flex-row justify-between items-center px-6 py-8 max-w-7xl mx-auto space-y-6 md:space-y-0 text-on-surface-variant">
         <div className="flex flex-col items-center md:items-start space-y-1">
-          <div className="font-display text-sm font-bold text-white tracking-widest uppercase">
-            YOLOCRAFT <span className="text-primary font-mono text-[10px]">ANALÍTICO</span>
+          <div className="font-display text-sm font-bold text-white tracking-widest">
+            YOLOCraft <span className="text-primary font-mono text-[10px] uppercase">ANALÍTICO</span>
           </div>
           <div className="font-mono text-[11px] text-gray-500 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse inline-block"></span>
@@ -17,7 +17,7 @@ export default function Footer() {
         </div>
 
         <div className="font-mono text-[10px] text-gray-500 text-center md:text-left">
-          © {currentYear} YOLOCRAFT - MONITOR DE ENTIDADES EM VOXELS.
+          © {currentYear} YOLOCraft - MONITOR DE ENTIDADES EM VOXELS.
         </div>
 
         <div className="flex flex-wrap justify-center gap-6 font-mono text-[11px]">
