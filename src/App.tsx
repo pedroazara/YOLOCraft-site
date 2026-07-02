@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ActiveTab, ScanResult } from './types';
+import { ActiveTab, ScanResult, MobEntity } from './types';
 import { BESTIARY_ENTITIES, RECENT_SCANS, RESULTS_SCREENSHOT_BOUNDING_BOXES, STATIC_RESULTS_IMAGE } from './data';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import BestiaryCard from './components/BestiaryCard';
 import DetectorPanel from './components/DetectorPanel';
+import BestiaryDetailModal from './components/BestiaryDetailModal';
 import { Shield, Brain, Terminal, ChevronRight, BarChart3, AlertTriangle, Eye, Compass, LayoutGrid } from 'lucide-react';
 
 export default function App() {
@@ -13,6 +14,8 @@ export default function App() {
   const [hoveredGridCell, setHoveredGridCell] = useState<{ r: number; c: number } | null>(null);
   const [blockCursorPos, setBlockCursorPos] = useState({ x: -100, y: -100 });
   const [userEmail, setUserEmail] = useState<string | undefined>('PedroHenriqueAlmeida2004@gmail.com');
+  const [externalLoadScan, setExternalLoadScan] = useState<ScanResult | null>(null);
+  const [selectedMob, setSelectedMob] = useState<MobEntity | null>(null);
 
   // Load mouse tracking cursor coordinates
   useEffect(() => {
@@ -31,6 +34,31 @@ export default function App() {
   const handleScanComplete = (newScan: ScanResult) => {
     // Add new scan to the beginning of the history
     setScans(prev => [newScan, ...prev]);
+  };
+
+  const handleViewMobDetails = (mobClass: string) => {
+    const normalized = mobClass.toLowerCase().trim();
+    const found = BESTIARY_ENTITIES.find(e => 
+      e.id === normalized || 
+      e.name.toLowerCase().includes(normalized) || 
+      normalized.includes(e.id) ||
+      (normalized === 'zumbi' && e.id === 'zombie') ||
+      (normalized === 'esqueleto' && e.id === 'skeleton') ||
+      (normalized === 'aranha' && e.id === 'spider') ||
+      (normalized === 'aranha da caverna' && e.id === 'cave_spider') ||
+      (normalized === 'golem de ferro' && e.id === 'iron_golem') ||
+      (normalized === 'vaca' && e.id === 'cow') ||
+      (normalized === 'ovelha' && e.id === 'sheep') ||
+      (normalized === 'porco' && e.id === 'pig') ||
+      (normalized === 'lobo' && e.id === 'wolf') ||
+      (normalized === 'galinha' && e.id === 'chicken') ||
+      (normalized === 'gato' && e.id === 'cat') ||
+      (normalized === 'sapo' && e.id === 'frog') ||
+      (normalized === 'cavalo' && e.id === 'horse')
+    );
+    if (found) {
+      setSelectedMob(found);
+    }
   };
 
   const handleEnterClick = () => {
@@ -69,11 +97,16 @@ export default function App() {
       <main className="flex-grow max-w-7xl w-full mx-auto px-margin-sm md:px-margin-lg py-12">
         
         {/* TAB 1: DETECTOR (Home Dashboard) */}
-        {activeTab === 'detector' && (
-          <div className="space-y-16 animate-fade-in">
+        <div className={`space-y-16 animate-fade-in ${activeTab !== 'detector' ? 'hidden' : ''}`}>
             
             {/* Detector Core Module Panel */}
-            <DetectorPanel onScanComplete={handleScanComplete} recentScans={scans} />
+            <DetectorPanel 
+              onScanComplete={handleScanComplete} 
+              recentScans={scans} 
+              externalLoadScan={externalLoadScan}
+              onClearExternalLoad={() => setExternalLoadScan(null)}
+              onViewMobDetails={handleViewMobDetails}
+            />
 
             {/* Bento Grid Info: Scan Features */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -136,8 +169,8 @@ export default function App() {
                   <div 
                     key={idx}
                     onClick={() => {
-                      alert(`Carregando relatório ${scan.name} no analisador. Role para cima para inspecionar!`);
-                      window.scrollTo({ top: 350, behavior: 'smooth' });
+                      setExternalLoadScan(scan);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
                     className="group cursor-pointer hover:border-primary transition-all duration-200 bg-[#111111] border border-[#333333] p-2"
                   >
@@ -174,11 +207,9 @@ export default function App() {
             </section>
 
           </div>
-        )}
 
         {/* TAB 2: ENTIDADES ENCYCLOPEDIA */}
-        {activeTab === 'entidades' && (
-          <div className="space-y-8 animate-fade-in">
+        <div className={`space-y-8 animate-fade-in ${activeTab !== 'entidades' ? 'hidden' : ''}`}>
             <div className="border-b border-[#222222] pb-6">
               <h1 className="font-display text-3xl sm:text-4xl text-white font-bold uppercase tracking-wider mb-3">
                 ENCICLOPÉDIA DE ENTIDADES
@@ -195,11 +226,9 @@ export default function App() {
               ))}
             </div>
           </div>
-        )}
 
         {/* TAB 3: COMO FUNCIONA (Blueprints) */}
-        {activeTab === 'como-funciona' && (
-          <div className="space-y-12 animate-fade-in">
+        <div className={`space-y-12 animate-fade-in ${activeTab !== 'como-funciona' ? 'hidden' : ''}`}>
             {/* Blueprint introduction block */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
@@ -396,11 +425,9 @@ export default function App() {
               </div>
             </section>
           </div>
-        )}
 
         {/* TAB 4: STATISTICS & HISTORICAL SCAN ANALYZER */}
-        {activeTab === 'stats' && (
-          <div className="space-y-12 animate-fade-in">
+        <div className={`space-y-12 animate-fade-in ${activeTab !== 'stats' ? 'hidden' : ''}`}>
             <div className="border-b border-[#222222] pb-6">
               <h1 className="font-display text-3xl sm:text-4xl text-white font-bold uppercase tracking-wider mb-3">
                 Painel Estatístico de Varreduras
@@ -506,8 +533,9 @@ export default function App() {
                         <td className="p-3 text-right">
                           <button
                             onClick={() => {
+                              setExternalLoadScan(scan);
                               setActiveTab('detector');
-                              alert(`Carregando ${scan.name} no analisador...`);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             className="bg-[#161616] hover:bg-primary hover:text-black text-gray-300 font-bold px-3 py-1 text-[10px] uppercase border border-[#333333] hover:border-primary transition-all cursor-pointer"
                           >
@@ -521,7 +549,12 @@ export default function App() {
               </div>
             </div>
           </div>
-        )}
+
+          {/* Global Details Modal */}
+          <BestiaryDetailModal 
+            entity={selectedMob} 
+            onClose={() => setSelectedMob(null)} 
+          />
 
       </main>
 

@@ -52,6 +52,27 @@ const getTemperamentDetails = (type: string) => {
   }
 };
 
+const IMAGE_CACHE_KEY = 'yolocraft_image_cache_v1';
+const getCachedUrl = (id: string): string | null => {
+  try {
+    const cached = localStorage.getItem(IMAGE_CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      return parsed[id] || null;
+    }
+  } catch (e) {}
+  return null;
+};
+
+const setCachedUrl = (id: string, url: string) => {
+  try {
+    const cached = localStorage.getItem(IMAGE_CACHE_KEY);
+    const parsed = cached ? JSON.parse(cached) : {};
+    parsed[id] = url;
+    localStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(parsed));
+  } catch (e) {}
+};
+
 interface BestiaryCardProps {
   entity: MobEntity;
   key?: string | number;
@@ -102,6 +123,7 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
   const candidates = getCandidates(entity.id);
   const [candidateIndex, setCandidateIndex] = useState(0);
   const [providerIndex, setProviderIndex] = useState(0);
+  const [isCacheFailed, setIsCacheFailed] = useState(false);
 
   const providers = [
     (file: string) => `https://images.weserv.nl/?url=https://minecraft.fandom.com/wiki/Special:FilePath/${file}`,
@@ -110,17 +132,40 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
     (file: string) => `https://minecraft.wiki/w/Special:FilePath/${file}`,
   ];
 
+  const cachedUrl = isCacheFailed ? null : getCachedUrl(entity.id);
   const currentFilename = candidates[candidateIndex] || `${entity.id}.gif`;
-  const imageUrl = providers[providerIndex] 
+  const imageUrl = cachedUrl || (providers[providerIndex] 
     ? providers[providerIndex](currentFilename) 
-    : `https://minecraft.fandom.com/wiki/Special:FilePath/${currentFilename}`;
+    : `https://minecraft.fandom.com/wiki/Special:FilePath/${currentFilename}`);
 
   const handleImageError = () => {
+    if (cachedUrl) {
+      // The cached URL failed to load (possibly due to network/CORS changes), so clear it and fallback
+      try {
+        const cached = localStorage.getItem(IMAGE_CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          delete parsed[entity.id];
+          localStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(parsed));
+        }
+      } catch (e) {}
+      setIsCacheFailed(true);
+      setCandidateIndex(0);
+      setProviderIndex(0);
+      return;
+    }
+
     if (providerIndex < providers.length - 1) {
       setProviderIndex(prev => prev + 1);
     } else if (candidateIndex < candidates.length - 1) {
       setCandidateIndex(prev => prev + 1);
       setProviderIndex(0);
+    }
+  };
+
+  const handleImageLoad = () => {
+    if (!cachedUrl) {
+      setCachedUrl(entity.id, imageUrl);
     }
   };
 
@@ -180,6 +225,7 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
               src={imageUrl} 
               alt={entity.name}
               onError={handleImageError}
+              onLoad={handleImageLoad}
               referrerPolicy="no-referrer"
             />
             {/* Scanline overlay effect on image when hovered */}
@@ -260,6 +306,7 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
                   src={imageUrl} 
                   alt={entity.name} 
                   onError={handleImageError}
+                  onLoad={handleImageLoad}
                   referrerPolicy="no-referrer" 
                 />
               </div>

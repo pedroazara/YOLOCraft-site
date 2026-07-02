@@ -6,6 +6,9 @@ import { motion, AnimatePresence } from 'motion/react';
 interface DetectorPanelProps {
   onScanComplete: (result: ScanResult) => void;
   recentScans: ScanResult[];
+  externalLoadScan?: ScanResult | null;
+  onClearExternalLoad?: () => void;
+  onViewMobDetails?: (mobClass: string) => void;
 }
 
 // Map class names to beautiful Minecraft palette colors
@@ -222,7 +225,13 @@ const PRESET_SCANS = [
   }
 ];
 
-export default function DetectorPanel({ onScanComplete, recentScans }: DetectorPanelProps) {
+export default function DetectorPanel({ 
+  onScanComplete, 
+  recentScans, 
+  externalLoadScan, 
+  onClearExternalLoad,
+  onViewMobDetails
+}: DetectorPanelProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
@@ -253,6 +262,33 @@ export default function DetectorPanel({ onScanComplete, recentScans }: DetectorP
       if (liveInterval) clearInterval(liveInterval);
     };
   }, []);
+
+  useEffect(() => {
+    if (externalLoadScan) {
+      setSelectedImage(externalLoadScan.imageUrl);
+      setActiveScanResult(externalLoadScan);
+      setApiData(externalLoadScan.apiResponse || {
+        width: 800,
+        height: 450,
+        detections: externalLoadScan.boundingBoxes.map(b => ({
+          class: b.label.toLowerCase(),
+          confidence: b.confidence / 100,
+          box: [
+            (b.left / 100) * 800,
+            (b.top / 100) * 450,
+            ((b.left + b.width) / 100) * 800,
+            ((b.top + b.height) / 100) * 450,
+          ] as [number, number, number, number],
+          polygon: []
+        }))
+      });
+      setIsLive(false);
+      setIsScanning(false);
+      if (onClearExternalLoad) {
+        onClearExternalLoad();
+      }
+    }
+  }, [externalLoadScan]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -893,7 +929,13 @@ export default function DetectorPanel({ onScanComplete, recentScans }: DetectorP
                         return (
                           <div 
                             key={idx} 
-                            className="p-3 bg-[#161616] border border-[#222222] space-y-2"
+                            onClick={() => {
+                              if (onViewMobDetails) {
+                                onViewMobDetails(d.class);
+                              }
+                            }}
+                            className="p-3 bg-[#161616] hover:bg-[#1f1f1f] hover:border-primary/50 cursor-pointer border border-[#222222] space-y-2 transition-all group/legend"
+                            title="Clique para abrir detalhes na Enciclopédia"
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2.5">
@@ -901,11 +943,14 @@ export default function DetectorPanel({ onScanComplete, recentScans }: DetectorP
                                   className="w-3 h-3 border"
                                   style={{ backgroundColor: color, borderColor: color }}
                                 />
-                                <h4 className="text-white text-xs font-bold uppercase tracking-wider">
+                                <h4 className="text-white text-xs font-bold uppercase tracking-wider group-hover/legend:text-primary transition-colors">
                                   {d.class}
                                 </h4>
                               </div>
-                              <span className="text-xs text-primary font-bold">{Math.round(d.confidence * 100)}% CONFIANÇA</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[8px] text-gray-500 group-hover/legend:text-primary transition-colors font-bold uppercase tracking-widest mr-2">VER DETALHES →</span>
+                                <span className="text-xs text-primary font-bold">{Math.round(d.confidence * 100)}% CONFIANÇA</span>
+                              </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-400 border-t border-[#222222]/60 pt-2 font-mono">
