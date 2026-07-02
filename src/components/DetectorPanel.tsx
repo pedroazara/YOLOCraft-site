@@ -11,11 +11,22 @@ interface DetectorPanelProps {
 // Map class names to beautiful Minecraft palette colors
 const getClassColor = (className: string): string => {
   const name = className.toLowerCase();
+  if (name.includes('cave_spider')) return '#10B981'; // Teal / Emerald
   if (name.includes('creeper')) return '#4ADE80'; // Lime green
-  if (name.includes('zombie') || name.includes('zumbi')) return '#06B6D4'; // Cyan
-  if (name.includes('skeleton') || name.includes('esqueleto')) return '#93C5FD'; // Light blue / skeleton gray
-  if (name.includes('spider') || name.includes('aranha')) return '#F43F5E'; // Rose/Red
   if (name.includes('enderman')) return '#C084FC'; // Purple
+  if (name.includes('skeleton') || name.includes('esqueleto')) return '#93C5FD'; // Light blue / gray
+  if (name.includes('slime')) return '#86EFAC'; // Soft green
+  if (name.includes('spider') || name.includes('aranha')) return '#F43F5E'; // Rose/Red
+  if (name.includes('zombie') || name.includes('zumbi')) return '#06B6D4'; // Cyan
+  if (name.includes('iron_golem') || name.includes('iron_golem') || name.includes('golem')) return '#F59E0B'; // Amber Golem
+  if (name.includes('wolf') || name.includes('lobo')) return '#E2E8F0'; // Slate Gray
+  if (name.includes('cat') || name.includes('gato')) return '#FB7185'; // Warm Pink
+  if (name.includes('chicken') || name.includes('galinha')) return '#FEE2E2'; // Reddish White
+  if (name.includes('cow') || name.includes('vaca')) return '#78350F'; // Brown
+  if (name.includes('frog') || name.includes('sapo')) return '#A3E635'; // Lime Green
+  if (name.includes('horse') || name.includes('cavalo')) return '#D97706'; // Dark Amber
+  if (name.includes('pig') || name.includes('porco')) return '#F472B6'; // Pink
+  if (name.includes('sheep') || name.includes('ovelha')) return '#FFFFFF'; // White
   if (name.includes('witch') || name.includes('bruxa')) return '#A855F7'; // Violet
   if (name.includes('phantom')) return '#3B82F6'; // Blue
   return '#F59E0B'; // Amber default

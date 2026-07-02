@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MobEntity } from '../types';
-import { Shield, Skull, Target, HelpCircle } from 'lucide-react';
+import { Shield, Skull, Target, HelpCircle, Heart, Swords, Activity } from 'lucide-react';
 
 const iconMap: { [key: string]: any } = {
   warning: Shield,
@@ -9,6 +9,46 @@ const iconMap: { [key: string]: any } = {
   bolt: HelpCircle,
   visibility: Skull,
   shield: Shield,
+};
+
+const getTemperamentDetails = (type: string) => {
+  switch (type) {
+    case 'Passivo':
+      return {
+        label: 'Pacífico (Passivo)',
+        desc: 'Não ataca o jogador sob nenhuma circunstância.',
+        colorClass: 'text-green-400 bg-green-950/20 border-green-500/30',
+        icon: '❤️'
+      };
+    case 'Neutro':
+      return {
+        label: 'Neutro',
+        desc: 'Ataca apenas se for provocado ou atacado primeiro.',
+        colorClass: 'text-amber-400 bg-amber-950/20 border-amber-500/30',
+        icon: '🛡️'
+      };
+    case 'Hostil':
+      return {
+        label: 'Hostil',
+        desc: 'Ataca o jogador imediatamente ao avistá-lo.',
+        colorClass: 'text-red-400 bg-red-950/20 border-red-500/30',
+        icon: '💀'
+      };
+    case 'Ataque à Distância':
+      return {
+        label: 'Hostil (À Distância)',
+        desc: 'Dispara projéteis contra o jogador à distância.',
+        colorClass: 'text-orange-400 bg-orange-950/20 border-orange-500/30',
+        icon: '🏹'
+      };
+    default:
+      return {
+        label: type,
+        desc: 'Comportamento padrão.',
+        colorClass: 'text-gray-400 bg-gray-950/20 border-gray-500/30',
+        icon: '❓'
+      };
+  }
 };
 
 interface BestiaryCardProps {
@@ -32,13 +72,15 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
 
   const segmentsCount = 10;
   const activeSegments = Math.round(entity.accuracy / 10);
+  const temperament = getTemperamentDetails(entity.type);
 
   return (
     <>
       <div 
-        className="gui-card group flex flex-col h-full select-none bg-[#111111] border border-[#333333] hover:border-primary transition-all duration-300 rounded-none relative overflow-hidden"
+        className="gui-card group flex flex-col h-full select-none bg-[#111111] border border-[#333333] hover:border-primary transition-all duration-300 rounded-none relative overflow-hidden cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={() => setIsModalOpen(true)}
       >
         {/* Subtle decorative grid/corners inside the card */}
         <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none opacity-20 border-t border-r border-[#4ADE80]"></div>
@@ -97,7 +139,10 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
 
             {/* Scan Action Button */}
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsModalOpen(true);
+              }}
               className="w-full bg-[#161616] hover:bg-primary hover:text-black text-gray-300 font-mono text-[10px] tracking-widest uppercase py-2.5 border border-[#333333] hover:border-primary transition-all duration-200 cursor-pointer"
             >
               ANÁLISE DE DADOS
@@ -108,8 +153,8 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
 
       {/* Detail Modal Dialog */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="w-full max-w-lg bg-[#111111] border border-[#333333] p-6 text-on-background relative flex flex-col gap-5">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 animate-fade-in" onClick={() => setIsModalOpen(false)}>
+          <div className="w-full max-w-lg bg-[#111111] border border-[#333333] p-6 text-on-background relative flex flex-col gap-5" onClick={(e) => e.stopPropagation()}>
             {/* Corner Bracket Elements */}
             <div className="corner-bracket-tl"></div>
             <div className="corner-bracket-tr"></div>
@@ -133,25 +178,37 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
             {/* Image & Loot Table Split */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-[#161616] border border-[#222222] p-3 aspect-square flex items-center justify-center">
-                <img className="w-full h-full object-contain" src={entity.image} alt={entity.name} referrerPolicy="no-referrer" />
+                <img className="w-full h-full object-contain animate-pulse-slow" src={entity.image} alt={entity.name} referrerPolicy="no-referrer" />
               </div>
 
               <div className="flex flex-col gap-4 justify-between">
                 <div>
-                  <h4 className="text-primary font-mono text-[10px] font-bold uppercase tracking-wider mb-2">PROPRIEDADES</h4>
-                  <div className="space-y-1 text-xs text-gray-300 font-mono">
+                  <h4 className="text-primary font-mono text-[10px] font-bold uppercase tracking-wider mb-2">PROPRIEDADES DA ENTIDADE</h4>
+                  <div className="space-y-2 text-xs text-gray-300 font-mono">
                     <p><span className="text-gray-500">Classificação:</span> {entity.type}</p>
-                    <p><span className="text-gray-500">Confiabilidade:</span> {entity.accuracy}%</p>
+                    <p>
+                      <span className="text-gray-500">Temperamento:</span>{' '}
+                      <span className={`px-1.5 py-0.5 rounded-sm border inline-flex items-center gap-1 ${temperament.colorClass}`}>
+                        <span>{temperament.icon}</span>
+                        <span>{temperament.label}</span>
+                      </span>
+                    </p>
+                    <p className="text-[11px] text-gray-400 leading-tight italic">{temperament.desc}</p>
+                    <p><span className="text-gray-500">Confiabilidade YOLO:</span> {entity.accuracy}%</p>
                   </div>
                 </div>
 
                 <div>
                   <h4 className="text-secondary font-mono text-[10px] font-bold uppercase tracking-wider mb-2">DROPS POSSÍVEIS</h4>
-                  <ul className="list-disc list-inside text-xs space-y-1 text-gray-300 font-mono">
-                    {entity.drops.map((drop, i) => (
-                      <li key={i}>{drop}</li>
-                    ))}
-                  </ul>
+                  {entity.drops.length > 0 ? (
+                    <ul className="list-disc list-inside text-xs space-y-1 text-gray-300 font-mono">
+                      {entity.drops.map((drop, i) => (
+                        <li key={i}>{drop}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-gray-500 font-mono italic">Nenhum drop registrado.</p>
+                  )}
                 </div>
               </div>
             </div>
