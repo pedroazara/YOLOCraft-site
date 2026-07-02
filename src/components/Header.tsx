@@ -1,5 +1,6 @@
 import { ActiveTab } from '../types';
 import { Compass, Skull, TrendingUp, HelpCircle, User } from 'lucide-react';
+import YolocraftLogo from './YolocraftLogo';
 
 interface HeaderProps {
   activeTab: ActiveTab;
@@ -18,9 +19,7 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
           className="flex items-center gap-3 cursor-pointer select-none"
           id="brand-logo"
         >
-          <div className="w-8 h-8 bg-primary flex items-center justify-center transition-transform hover:rotate-45 duration-300">
-            <div className="w-4 h-4 bg-black"></div>
-          </div>
+          <YolocraftLogo className="w-12 h-12 sm:w-14 sm:h-14" />
           <span className="font-display text-xl sm:text-2xl font-bold text-white uppercase tracking-tighter">
             YOLOCRAFT <span className="text-primary font-mono text-sm ml-1">v2.4</span>
           </span>
