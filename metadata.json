@@ -1,0 +1,6 @@
+{
+  "name": "YOLOCraft",
+  "description": "Detector óptico de entidades em blocos com segmentação baseada em rede neural YOLO e enciclopédia de criaturas do bioma Overworld.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

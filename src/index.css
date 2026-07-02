@@ -1,0 +1,251 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&family=VT323&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "VT323", "Silkscreen", monospace;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-primary: #4ADE80;
+  --color-on-primary: #000000;
+  --color-primary-container: #1b4329;
+  --color-on-primary-container: #4ADE80;
+  
+  --color-secondary: #c084fc;
+  --color-secondary-container: #3b0764;
+  --color-on-secondary-container: #f3e8ff;
+  
+  --color-background: #0A0A0A;
+  --color-on-background: #E0E0E0;
+  --color-surface: #111111;
+  --color-surface-container: #111111;
+  --color-surface-container-high: #1a1a1a;
+  --color-surface-container-highest: #262626;
+  --color-surface-container-low: #0a0a0a;
+  --color-surface-container-lowest: #050505;
+  
+  --color-error: #f87171;
+  --color-error-container: #7f1d1d;
+}
+
+body {
+  background-color: #0A0A0A;
+  background-image: 
+    linear-gradient(rgba(74, 222, 128, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 222, 128, 0.015) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: #E0E0E0;
+  font-family: 'Inter', system-ui, sans-serif;
+  image-rendering: pixelated;
+  overflow-x: hidden;
+}
+
+/* Geometric Balance clean cards with thin high-tech borders */
+.gui-card {
+  background-color: #111111;
+  border: 1px solid #333333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gui-card:hover {
+  border-color: #4ADE80;
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.15);
+}
+
+.gui-slot {
+  background-color: #181818;
+  border: 1px solid #333333;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Corner bracket overlay styles for Geometric Balance */
+.corner-bracket-tl {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid #4ADE80;
+  border-left: 2px solid #4ADE80;
+}
+
+.corner-bracket-tr {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid #4ADE80;
+  border-right: 2px solid #4ADE80;
+}
+
+.corner-bracket-bl {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 2px solid #4ADE80;
+  border-left: 2px solid #4ADE80;
+}
+
+.corner-bracket-br {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 2px solid #4ADE80;
+  border-right: 2px solid #4ADE80;
+}
+
+/* Scanline visual overlay effect */
+.scanline-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  background: linear-gradient(0deg, transparent 0%, #4ADE80 50%, transparent 100%);
+  background-size: 100% 4px;
+}
+
+/* Scanning Overlay laser effect animation */
+@keyframes scan {
+  0% { top: 0%; opacity: 0.8; }
+  50% { opacity: 0.4; }
+  100% { top: 100%; opacity: 0.8; }
+}
+
+.scan-overlay {
+  animation: scan 4s linear infinite;
+}
+
+/* Bobbing animation for decals */
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-bob {
+  animation: bob 3.5s ease-in-out infinite;
+}
+
+/* Pulse animation */
+@keyframes custom-pulse {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.4)); }
+  50% { opacity: 0.4; filter: drop-shadow(0 0 1px rgba(74, 222, 128, 0.1)); }
+}
+
+.redstone-pulse {
+  animation: custom-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom fade in transition */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+/* Clean Block Shadows for high contrast geometric balance */
+.block-shadow {
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+
+/* Custom cursors fallback */
+.custom-cursor {
+  cursor: crosshair;
+}
+
+/* Animation for mock segmentation mask reveal (gradual, high-tech scan) */
+@keyframes maskReveal {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    filter: brightness(2) contrast(1.5) drop-shadow(0 0 0px var(--color-primary));
+  }
+  40% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0.65;
+    clip-path: inset(0 0 0% 0);
+    filter: brightness(1) contrast(1) drop-shadow(0 0 6px var(--color-primary));
+  }
+}
+
+.animate-mask-reveal {
+  animation: maskReveal 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* Glow pulse animation for the neon segmentation outline */
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.65;
+    filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.4));
+  }
+  50% {
+    opacity: 0.85;
+    filter: drop-shadow(0 0 10px rgba(74, 222, 128, 0.8));
+  }
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 2.5s ease-in-out infinite;
+  animation-delay: 2.2s; /* Start pulsing after reveal animation completes */
+}
+
+/* Voxel gradual reveal animation for individual mask blocks */
+@keyframes voxelReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+    filter: brightness(2) saturate(1.5);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.65;
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
+}
+
+.animate-voxel-reveal {
+  animation: voxelReveal 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes scanVertical {
+  0% {
+    top: 0%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+.animate-scan-vertical {
+  animation: scanVertical 4s linear infinite;
+}
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 3s ease-in-out infinite;
+}
+
+
