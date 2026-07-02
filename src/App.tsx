@@ -118,7 +118,7 @@ export default function App() {
 
                 <div className="flex items-center gap-3 text-primary">
                   <Shield className="w-6 h-6" />
-                  <h3 className="font-display text-xl uppercase font-bold tracking-wider">Análise Espacial Avançada</h3>
+                  <h3 className="font-display text-xl uppercase font-bold tracking-wider">Analise Espacial Avancada</h3>
                 </div>
                 <p className="text-gray-400 font-sans text-xs sm:text-sm leading-relaxed">
                   Nosso algoritmo do YOLOCraft detecta múltiplos mobs mesmo em áreas de densa folhagem ou cavernas profundas. Receba feedback em tempo real com probabilidade de drops de pólvora, teia, flechas ou carne podre de pixels brutos filtrados do HUD.
@@ -212,7 +212,7 @@ export default function App() {
         <div className={`space-y-8 animate-fade-in ${activeTab !== 'entidades' ? 'hidden' : ''}`}>
             <div className="border-b border-[#222222] pb-6">
               <h1 className="font-display text-3xl sm:text-4xl text-white font-bold uppercase tracking-wider mb-3">
-                ENCICLOPÉDIA DE ENTIDADES
+                ENCICLOPEDIA DE ENTIDADES
               </h1>
               <p className="font-sans text-xs sm:text-sm text-gray-400 max-w-2xl leading-relaxed">
                 A Rede Neural YOLO-VOXEL catalogou as seguintes entidades com base no treinamento de Redstone. A precisão de segmentação é validada através de 40.000 quadros de voxels únicos no bioma Overworld.
@@ -306,7 +306,7 @@ export default function App() {
                       <span className="font-mono text-[10px] text-primary font-bold tracking-wider">PASSO 02</span>
                       <LayoutGrid className="w-4 h-4 text-gray-500" />
                     </div>
-                    <h3 className="font-display text-base uppercase text-white font-bold tracking-wider mb-3">Divisão Espacial em Grade</h3>
+                    <h3 className="font-display text-base uppercase text-white font-bold tracking-wider mb-3">Divisao Espacial em Grade</h3>
                     <p className="font-sans text-xs text-gray-400 leading-relaxed mb-4">
                       Dividimos a viewport em uma grade S x S (padrão 13x13). Cada coordenada de bloco é responsável por delimitar o centróide do mob mapeado.
                     </p>
@@ -374,7 +374,7 @@ export default function App() {
                       <span className="font-mono text-[10px] text-primary font-bold tracking-wider">PASSO 04</span>
                       <Compass className="w-4 h-4 text-gray-500" />
                     </div>
-                    <h3 className="font-display text-base uppercase text-white font-bold tracking-wider mb-3">Delimitação de Bounding Boxes</h3>
+                    <h3 className="font-display text-base uppercase text-white font-bold tracking-wider mb-3">Delimitacao de Bounding Boxes</h3>
                     <p className="font-sans text-xs text-gray-400 leading-relaxed mb-4">
                       Geramos pontuações de confiança por segmento mapeado. Bounding boxes acima da tolerância são instantaneamente projetadas no HUD óptico do explorador.
                     </p>
@@ -414,7 +414,7 @@ export default function App() {
               
               <div className="flex flex-col md:flex-row items-center gap-12">
                 <div className="flex-1 space-y-4">
-                  <h2 className="font-display text-xl uppercase font-bold text-white tracking-wider">A Regra do "Passo Único"</h2>
+                  <h2 className="font-display text-xl uppercase font-bold text-white tracking-wider">A Regra do "Passo Unico"</h2>
                   <p className="font-sans text-xs sm:text-sm text-gray-400 leading-relaxed">
                     Mapeadores ultrapassados analisam milhares de regiões da tela individualmente — o que equivale a bater em cada bloco de terra um por um. O YOLOCraft observa o campo inteiro de visão uma única vez. É a diferença brutal entre puxar uma alavanca de pistão manual ou configurar um clock repetidor de Redstone infinito.
                   </p>
@@ -430,7 +430,7 @@ export default function App() {
         <div className={`space-y-12 animate-fade-in ${activeTab !== 'stats' ? 'hidden' : ''}`}>
             <div className="border-b border-[#222222] pb-6">
               <h1 className="font-display text-3xl sm:text-4xl text-white font-bold uppercase tracking-wider mb-3">
-                Painel Estatístico de Varreduras
+                Painel Estatistico de Varreduras
               </h1>
               <p className="font-sans text-xs sm:text-sm text-gray-400 max-w-2xl leading-relaxed">
                 Acompanhe o tráfego de entidades catalogadas pelas suas sondas analíticas. Escolha e clique em qualquer registro do banco de dados local para re-escanear no visor óptico principal do detector.
@@ -497,7 +497,7 @@ export default function App() {
 
               <h3 className="font-display text-lg uppercase text-primary font-bold tracking-wider mb-6 flex items-center gap-3">
                 <BarChart3 className="w-5 h-5" />
-                <span>Arquivo Histórico de Chunks Analisadas</span>
+                <span>Arquivo Historico de Chunks Analisadas</span>
               </h3>
 
               <div className="overflow-x-auto">

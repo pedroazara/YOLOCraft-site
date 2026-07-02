@@ -240,7 +240,7 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
             {/* Accuracy Indicator (Segmented XP Bar) */}
             <div>
               <div className="flex justify-between font-mono text-[10px] text-gray-400 mb-1.5">
-                <span className="tracking-widest">A CURÁCIA</span>
+                <span className="tracking-widest">CURACIA</span>
                 <span className="text-primary font-bold">{entity.accuracy}%</span>
               </div>
               <div className="h-2 bg-[#1a1a1a] border border-[#333333] flex gap-0.5 p-0.5">
@@ -268,7 +268,7 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
               }}
               className="w-full bg-[#161616] hover:bg-primary hover:text-black text-gray-300 font-mono text-[10px] tracking-widest uppercase py-2.5 border border-[#333333] hover:border-primary transition-all duration-200 cursor-pointer"
             >
-              ANÁLISE DE DADOS
+              ANALISE DE DADOS
             </button>
           </div>
         </div>
@@ -329,7 +329,7 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
                 </div>
 
                 <div>
-                  <h4 className="text-secondary font-mono text-[10px] font-bold uppercase tracking-wider mb-2">DROPS POSSÍVEIS</h4>
+                  <h4 className="text-secondary font-mono text-[10px] font-bold uppercase tracking-wider mb-2">DROPS POSSIVEIS</h4>
                   {entity.drops.length > 0 ? (
                     <ul className="list-disc list-inside text-xs space-y-1 text-gray-300 font-mono">
                       {entity.drops.map((drop, i) => (
@@ -346,7 +346,7 @@ export default function BestiaryCard({ entity }: BestiaryCardProps) {
             {/* Description Paragraph */}
             <div className="bg-[#161616] border border-[#222222] p-4 text-xs space-y-3">
               <div>
-                <h4 className="text-primary font-mono text-[10px] font-bold uppercase tracking-wider mb-1">DESCRIÇÃO DO SISTEMA</h4>
+                <h4 className="text-primary font-mono text-[10px] font-bold uppercase tracking-wider mb-1">DESCRICAO DO SISTEMA</h4>
                 <p className="text-gray-300 leading-relaxed font-sans text-xs">
                   {entity.description}
                 </p>

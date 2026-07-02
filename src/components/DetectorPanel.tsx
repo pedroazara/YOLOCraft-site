@@ -313,8 +313,37 @@ export default function DetectorPanel({
     fileInputRef.current?.click();
   };
 
+  // Reference to avoid stale processFile closures in global event listener
+  const processFileRef = useRef(processFile);
+  useEffect(() => {
+    processFileRef.current = processFile;
+  }, [processFile]);
+
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const clipboardItems = e.clipboardData?.items;
+      if (!clipboardItems) return;
+
+      for (let i = 0; i < clipboardItems.length; i++) {
+        const item = clipboardItems[i];
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            processFileRef.current(file);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => {
+      window.removeEventListener('paste', handlePaste);
+    };
+  }, []);
+
   // Main client file processing
-  const processFile = (file: File) => {
+  function processFile(file: File) {
     setErrorMessage(null);
     setIsLive(false);
     
@@ -381,7 +410,7 @@ export default function DetectorPanel({
       setErrorMessage('Erro ao ler formato da imagem.');
     };
     img.src = imageUrl;
-  };
+  }
 
   // Simulation fallback
   const simulateLocalScan = (imageUrl: string, fileName: string, w: number, h: number) => {
@@ -584,10 +613,10 @@ export default function DetectorPanel({
             <span>SISTEMA INTEGRADO YOLO V8 + POLYGON MASKS</span>
           </div>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white font-bold leading-none uppercase tracking-tight select-none">
-            Análise de Mobs <br /> <span className="text-primary font-display">YOLOCraft</span>
+            Analise de Mobs <br /> <span className="text-primary font-display">YOLOCraft</span>
           </h1>
           <p className="font-sans text-gray-400 text-sm sm:text-base max-w-xl leading-relaxed">
-            Mapeie o contorno das ameaças hostis. Faça upload de capturas de tela do jogo para enviar ao analisador. O pipeline de Redstone YOLO realiza a segmentação de contornos pixelados instantaneamente.
+            Mapeie o contorno das ameaças hostis. Envie capturas de tela ou pressione <span className="text-primary font-mono font-bold">Ctrl + V</span> para colar diretamente uma imagem da área de transferência. O pipeline de Redstone YOLO realiza a segmentação de contornos pixelados instantaneamente.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-2">
@@ -604,7 +633,7 @@ export default function DetectorPanel({
               className="px-6 py-3.5 bg-primary hover:bg-emerald-400 text-black font-mono text-xs font-bold uppercase flex items-center justify-center gap-3 transition-all duration-200 cursor-pointer disabled:opacity-50"
             >
               <UploadCloud className="w-4 h-4" />
-              <span>ENVIAR CAPTURA (.PNG/.JPG)</span>
+              <span>ENVIAR OU COLAR (CTRL + V)</span>
             </button>
             <button 
               onClick={toggleLiveStream}
@@ -629,7 +658,7 @@ export default function DetectorPanel({
 
           <h3 className="font-display text-base text-secondary uppercase font-bold tracking-wider mb-3 flex items-center gap-2">
             <Radar className="w-4 h-4 text-secondary" />
-            <span>Varreduras de Teste Rápido</span>
+            <span>Varreduras de Teste Rapido</span>
           </h3>
           <p className="font-sans text-xs text-gray-400 leading-relaxed mb-4 font-normal">
             Não tem uma captura disponível? Clique em um dos cenários abaixo para rodar o pipeline com dados de teste integrados:
@@ -659,7 +688,7 @@ export default function DetectorPanel({
             <div className="flex items-center justify-between border-b border-[#222222] pb-3">
               <div className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 bg-primary rounded-full animate-ping"></span>
-                <h2 className="font-display text-lg text-white font-bold uppercase tracking-wider">Visor Óptico Principal</h2>
+                <h2 className="font-display text-lg text-white font-bold uppercase tracking-wider">Visor Optico Principal</h2>
               </div>
               <div className="flex items-center gap-2">
                 <span className={`text-[10px] font-mono px-2 py-0.5 border uppercase ${

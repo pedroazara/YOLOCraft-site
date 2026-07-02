@@ -220,7 +220,7 @@ export default function BestiaryDetailModal({ entity, onClose }: BestiaryDetailM
             </div>
 
             <div>
-              <h4 className="text-secondary font-mono text-[10px] font-bold uppercase tracking-wider mb-2">DROPS POSSÍVEIS</h4>
+              <h4 className="text-secondary font-mono text-[10px] font-bold uppercase tracking-wider mb-2">DROPS POSSIVEIS</h4>
               {entity.drops.length > 0 ? (
                 <ul className="list-disc list-inside text-xs space-y-1 text-gray-300 font-mono">
                   {entity.drops.map((drop, i) => (
@@ -237,7 +237,7 @@ export default function BestiaryDetailModal({ entity, onClose }: BestiaryDetailM
         {/* Description Paragraph */}
         <div className="bg-[#161616] border border-[#222222] p-4 text-xs space-y-3">
           <div>
-            <h4 className="text-primary font-mono text-[10px] font-bold uppercase tracking-wider mb-1">DESCRIÇÃO DO SISTEMA</h4>
+            <h4 className="text-primary font-mono text-[10px] font-bold uppercase tracking-wider mb-1">DESCRICAO DO SISTEMA</h4>
             <p className="text-gray-300 leading-relaxed font-sans text-xs">
               {entity.description}
             </p>

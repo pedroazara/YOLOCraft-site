@@ -1,4 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Rounded dark background for tab visibility -->
+  <rect width="512" height="512" rx="96" fill="#0a0a0a" />
+
   <!-- Corner Brackets (Lime Green Target) -->
   <path d="M 115 70 L 70 70 L 70 115" fill="none" stroke="#99e324" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
   <path d="M 397 70 L 442 70 L 442 115" fill="none" stroke="#99e324" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />

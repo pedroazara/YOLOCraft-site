@@ -1,9 +1,18 @@
+@font-face {
+  font-family: 'Minecraft';
+  src: url('https://cdn.jsdelivr.net/gh/IdreesInc/Minecraft-WebFont@master/fonts/minecraft-regular.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/IdreesInc/Minecraft-WebFont@master/fonts/minecraft-regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&family=VT323&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
-  --font-display: "VT323", "Silkscreen", monospace;
+  --font-display: "Minecraft", "VT323", "Silkscreen", monospace;
   --font-mono: "JetBrains Mono", monospace;
   
   --color-primary: #4ADE80;
