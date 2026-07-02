@@ -56,63 +56,131 @@ body {
   overflow-x: hidden;
 }
 
-/* Geometric Balance clean cards with thin high-tech borders */
-.gui-card {
-  background-color: #111111;
-  border: 1px solid #333333;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+/* Minecraft-themed GUI panel with authentic bevels and block shadow */
+.gui-card, .mc-panel {
+  background-color: #1a1a1a;
+  border-top: 3px solid #4d4d4d;
+  border-left: 3px solid #4d4d4d;
+  border-right: 3px solid #0a0a0a;
+  border-bottom: 3px solid #0a0a0a;
+  box-shadow: inset 2px 2px 0px #2e2e2e, inset -2px -2px 0px #111111, 4px 4px 0px #000000;
+  image-rendering: pixelated;
+  transition: all 0.15s ease-out;
 }
 
-.gui-card:hover {
-  border-color: #4ADE80;
-  box-shadow: 0 0 15px rgba(74, 222, 128, 0.15);
+.gui-card:hover, .mc-panel:hover {
+  border-top-color: #555555;
+  border-left-color: #555555;
+  border-right-color: #080808;
+  border-bottom-color: #080808;
+  box-shadow: inset 2px 2px 0px #3a3a3a, inset -2px -2px 0px #0f0f0f, 6px 6px 0px rgba(74, 222, 128, 0.4);
 }
 
-.gui-slot {
-  background-color: #181818;
-  border: 1px solid #333333;
+/* Minecraft slot (inset with realistic 3D shadow frame) */
+.gui-slot, .mc-slot {
+  background-color: #0c0c0c;
+  border-top: 3px solid #050505;
+  border-left: 3px solid #050505;
+  border-right: 3px solid #2d2d2d;
+  border-bottom: 3px solid #2d2d2d;
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.9);
   position: relative;
   overflow: hidden;
+}
+
+/* Minecraft Beveled Buttons */
+.mc-button, .mc-btn {
+  background-color: #4a4a4a;
+  border-top: 3px solid #777777;
+  border-left: 3px solid #777777;
+  border-right: 3px solid #1c1c1c;
+  border-bottom: 3px solid #1c1c1c;
+  color: #e0e0e0;
+  font-family: 'Minecraft', "VT323", "Silkscreen", monospace;
+  text-shadow: 2px 2px 0px #000000;
+  box-shadow: 2px 2px 0px #000000;
+  cursor: pointer;
+  transition: all 0.05s ease;
+  image-rendering: pixelated;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-button:hover, .mc-btn:hover {
+  background-color: #3c8527; /* MC Green hover */
+  border-top-color: #55b635;
+  border-left-color: #55b635;
+  border-right-color: #113607;
+  border-bottom-color: #113607;
+  color: #ffffff;
+}
+
+.mc-button:active, .mc-btn:active {
+  border-top-color: #1c1c1c;
+  border-left-color: #1c1c1c;
+  border-right-color: #777777;
+  border-bottom-color: #777777;
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #000000;
+}
+
+/* Minecraft Green Beveled Button (Active / Primary) */
+.mc-btn-green {
+  background-color: #2e6b1d;
+  border-top: 3px solid #4a9e30;
+  border-left: 3px solid #4a9e30;
+  border-right: 3px solid #0f270a;
+  border-bottom: 3px solid #0f270a;
+  color: #ffffff !important;
+  text-shadow: 2px 2px 0px #000000;
+}
+
+.mc-btn-green:hover {
+  background-color: #3c8527;
+  border-top-color: #55b635;
+  border-left-color: #55b635;
+  border-right-color: #113607;
+  border-bottom-color: #113607;
 }
 
 /* Corner bracket overlay styles for Geometric Balance */
 .corner-bracket-tl {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  width: 12px;
-  height: 12px;
+  top: 8px;
+  left: 8px;
+  width: 8px;
+  height: 8px;
   border-top: 2px solid #4ADE80;
   border-left: 2px solid #4ADE80;
 }
 
 .corner-bracket-tr {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 12px;
-  height: 12px;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
   border-top: 2px solid #4ADE80;
   border-right: 2px solid #4ADE80;
 }
 
 .corner-bracket-bl {
   position: absolute;
-  bottom: 12px;
-  left: 12px;
-  width: 12px;
-  height: 12px;
+  bottom: 8px;
+  left: 8px;
+  width: 8px;
+  height: 8px;
   border-bottom: 2px solid #4ADE80;
   border-left: 2px solid #4ADE80;
 }
 
 .corner-bracket-br {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
-  width: 12px;
-  height: 12px;
+  bottom: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
   border-bottom: 2px solid #4ADE80;
   border-right: 2px solid #4ADE80;
 }

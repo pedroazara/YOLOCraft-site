@@ -168,7 +168,7 @@ export default function BestiaryDetailModal({ entity, onClose }: BestiaryDetailM
 
   return createPortal(
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 animate-fade-in" onClick={onClose}>
-      <div className="w-full max-w-lg bg-[#111111] border border-[#333333] p-6 text-on-background relative flex flex-col gap-5" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg gui-card p-6 text-on-background relative flex flex-col gap-5 shadow-[6px_6px_0px_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
         {/* Corner Bracket Elements */}
         <div className="corner-bracket-tl"></div>
         <div className="corner-bracket-tr"></div>
@@ -183,7 +183,7 @@ export default function BestiaryDetailModal({ entity, onClose }: BestiaryDetailM
           </div>
           <button 
             onClick={onClose}
-            className="w-8 h-8 bg-[#1a1a1a] border border-[#333333] hover:border-red-500 text-gray-400 hover:text-red-500 flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
+            className="w-8 h-8 mc-button font-bold text-sm"
           >
             ✕
           </button>
@@ -254,7 +254,7 @@ export default function BestiaryDetailModal({ entity, onClose }: BestiaryDetailM
         <div className="flex justify-end mt-2">
           <button 
             onClick={onClose}
-            className="bg-primary hover:bg-[#34d399] text-black px-6 py-2 text-xs font-mono font-bold uppercase cursor-pointer transition-colors"
+            className="mc-button mc-btn-green px-6 py-2.5 text-xs font-bold uppercase"
           >
             FECHAR LOGS
           </button>

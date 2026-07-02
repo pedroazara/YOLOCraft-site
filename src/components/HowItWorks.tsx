@@ -290,7 +290,7 @@ python -m src.detector_gui`
                 {/* Bloco 1: O que é uma Rede Neural */}
                 <div className="space-y-4">
                   <h3 className="font-display text-sm font-bold tracking-wider text-white border-l-2 border-primary pl-2 uppercase">
-                    1. O que é uma Rede Neural Artificial?
+                    1. O que e uma Rede Neural Artificial?
                   </h3>
                   <p className="font-sans text-xs sm:text-sm text-gray-400 leading-relaxed">
                     Uma <strong>Rede Neural Artificial</strong> é um modelo matemático computacional inspirado na estrutura neuronal do cérebro biológico. Ela foi concebida para aprender e aproximar funções complexas, reconhecendo padrões intrínsecos em grandes volumes de dados (como imagens de jogos).
@@ -330,7 +330,7 @@ python -m src.detector_gui`
                   <div className="p-5 bg-black/60 border border-[#222222] rounded-sm space-y-4">
                     <div className="flex items-center gap-2 text-[#4ade80]">
                       <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-                      <span className="font-display text-xs font-bold uppercase tracking-wider">Lógica de Passo Único (Single-Pass Model)</span>
+                      <span className="font-display text-xs font-bold uppercase tracking-wider">Logica de Passo Unico (Single-Pass Model)</span>
                     </div>
                     
                     <p className="font-sans text-xs text-gray-300 leading-relaxed">
@@ -368,7 +368,7 @@ python -m src.detector_gui`
                   <div className="flex items-center gap-2.5">
                     <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
                     <h3 className="font-display text-sm font-bold text-white tracking-wider uppercase">
-                      CRÉDITOS OFICIAIS: ULTRALYTICS
+                      CREDITOS OFICIAIS: ULTRALYTICS
                     </h3>
                   </div>
 
@@ -411,7 +411,7 @@ python -m src.detector_gui`
                 <div className="border-b border-[#222222] pb-4">
                   <h2 className="font-display text-2xl font-bold tracking-wider flex items-center gap-3">
                     <FolderTree className="w-5 h-5 text-primary" />
-                    <span>ESTRUTURA DE DIRETÓRIOS</span>
+                    <span>ESTRUTURA DE DIRETORIOS</span>
                   </h2>
                   <p className="font-mono text-xs text-gray-500 mt-1 uppercase">Organização física de dados, scripts, modelos e documentações</p>
                 </div>

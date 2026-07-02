@@ -648,10 +648,10 @@ export default function DetectorPanel({
             <button 
               onClick={triggerUploadClick}
               disabled={isScanning}
-              className="px-6 py-3.5 bg-primary hover:bg-emerald-400 text-black font-mono text-xs font-bold uppercase flex items-center justify-center gap-3 transition-all duration-200 cursor-pointer disabled:opacity-50"
+              className="px-6 py-3.5 mc-button mc-btn-green text-xs font-bold uppercase flex items-center justify-center gap-3 disabled:opacity-50 w-full sm:w-auto"
             >
-              <UploadCloud className="w-4 h-4" />
-              <span>{language === 'pt' ? 'ENVIAR OU COLAR (CTRL + V)' : 'UPLOAD OR PASTE (CTRL + V)'}</span>
+              <UploadCloud className="w-4 h-4 text-white" />
+              <span className="text-white">{language === 'pt' ? 'ENVIAR OU COLAR (CTRL + V)' : 'UPLOAD OR PASTE (CTRL + V)'}</span>
             </button>
           </div>
         </div>
@@ -665,7 +665,7 @@ export default function DetectorPanel({
 
           <h3 className="font-display text-base text-secondary uppercase font-bold tracking-wider mb-3 flex items-center gap-2">
             <Radar className="w-4 h-4 text-secondary" />
-            <span>{language === 'pt' ? 'Varreduras de Teste Rápido' : 'Quick Test Scans'}</span>
+            <span>{language === 'pt' ? 'Varreduras de Teste Rapido' : 'Quick Test Scans'}</span>
           </h3>
           <p className="font-sans text-xs text-gray-400 leading-relaxed mb-4 font-normal">
             {language === 'pt'
@@ -678,9 +678,9 @@ export default function DetectorPanel({
                 key={i}
                 onClick={() => loadPreset(p)}
                 disabled={isScanning}
-                className="p-3 bg-[#161616] hover:bg-[#222222] text-left border border-[#262626] hover:border-primary cursor-pointer flex flex-col gap-1 transition-all disabled:opacity-50"
+                className="p-3 mc-button text-left flex flex-col gap-1 transition-all disabled:opacity-50"
               >
-                <span className="font-mono text-[9px] text-primary font-bold uppercase tracking-wider">{p.mob}</span>
+                <span className="font-mono text-[9px] text-[#4ADE80] font-bold uppercase tracking-wider">{p.mob}</span>
                 <span className="font-sans text-xs text-white truncate font-medium">{p.name}</span>
               </button>
             ))}
@@ -1056,7 +1056,7 @@ export default function DetectorPanel({
                           onClick={() => {
                             if (onViewMobDetails) onViewMobDetails(d.class);
                           }}
-                          className="px-4 py-2 bg-primary hover:bg-emerald-400 text-black font-mono text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                          className="px-4 py-2 mc-button mc-btn-green text-[10px] font-bold uppercase tracking-wider"
                         >
                           {t('open_wiki')}
                         </button>
@@ -1084,36 +1084,36 @@ export default function DetectorPanel({
                 <label className="font-mono text-[10px] text-gray-400 uppercase tracking-wider block">
                   {language === 'pt' ? 'Alternar Visualização' : 'Toggle View Mode'}
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
                     onClick={() => setViewMode('bbox')}
-                    className={`px-3 py-2.5 font-mono text-[10px] font-bold border transition-all cursor-pointer ${
+                    className={`px-3 py-2.5 text-[10px] font-bold transition-all ${
                       viewMode === 'bbox'
-                        ? 'bg-primary text-black border-primary'
-                        : 'bg-[#161616] text-gray-400 border-[#262626] hover:border-gray-500'
+                        ? 'mc-button mc-btn-green'
+                        : 'mc-button'
                     }`}
                   >
                     {language === 'pt' ? 'CAIXAS ENQUADRADAS' : 'BOUNDING BOXES'}
                   </button>
                   <button
                     onClick={() => setViewMode('highlight')}
-                    className={`px-3 py-2.5 font-mono text-[10px] font-bold border transition-all cursor-pointer ${
+                    className={`px-3 py-2.5 text-[10px] font-bold transition-all ${
                       viewMode === 'highlight'
-                        ? 'bg-primary text-black border-primary'
-                        : 'bg-[#161616] text-gray-400 border-[#262626] hover:border-gray-500'
+                        ? 'mc-button mc-btn-green'
+                        : 'mc-button'
                     }`}
                   >
                     {language === 'pt' ? 'FOCO / DESTAQUE (SPOTLIGHT)' : 'SPOTLIGHT'}
                   </button>
                   <button
                     onClick={() => setViewMode('overlay')}
-                    className={`px-3 py-2.5 font-mono text-[10px] font-bold border transition-all cursor-pointer ${
+                    className={`px-3 py-2.5 text-[10px] font-bold transition-all ${
                       viewMode === 'overlay'
-                        ? 'bg-primary text-black border-primary'
-                        : 'bg-[#161616] text-gray-400 border-[#262626] hover:border-gray-500'
+                        ? 'mc-button mc-btn-green'
+                        : 'mc-button'
                     }`}
                   >
-                    {language === 'pt' ? 'MÁSCARA COLORIDA (OVERLAY)' : 'COLOR OVERLAY'}
+                    {language === 'pt' ? 'MASCARA COLORIDA (OVERLAY)' : 'COLOR OVERLAY'}
                   </button>
                 </div>
               </div>
