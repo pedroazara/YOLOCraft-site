@@ -35,31 +35,31 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
             onClick={() => setActiveTab('detector')}
             onMouseEnter={() => setHoveredTab('detector')}
             onMouseLeave={() => setHoveredTab(null)}
-            className={`relative flex items-center gap-2 px-3.5 py-2 transition-all font-display text-xs sm:text-sm tracking-wider select-none cursor-pointer ${
+            className={`relative flex items-center gap-2 px-4 py-2.5 font-minecraft text-sm select-none cursor-pointer transition-all duration-100 ${
               activeTab === 'detector'
-                ? 'text-primary font-bold'
-                : 'text-[#888888] hover:text-white'
+                ? 'text-primary'
+                : 'text-[#aaaaaa] hover:text-white'
             }`}
           >
-            <Compass className="w-3.5 h-3.5" />
+            <Compass className="w-4 h-4" />
             <span>DETECTOR</span>
             
             {activeTab === 'detector' && (
               <motion.div
                 layoutId="active-indicator"
-                className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
-                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                className="absolute inset-0 bg-[#1e3f22]/60 border-2 border-t-[#4ade80] border-l-[#4ade80] border-r-[#155e2f] border-b-[#155e2f] -z-20 shadow-[2px_2px_0px_#000000]"
+                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
               />
             )}
 
-            {hoveredTab === 'detector' && (
+            {hoveredTab === 'detector' && activeTab !== 'detector' && (
               <motion.div
                 layoutId="hover-indicator"
-                className="absolute inset-0 bg-primary/10 border border-primary/20 -z-10 rounded"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                className="absolute inset-0 bg-[#2c2c2c] border-2 border-t-[#8b8b8b] border-l-[#8b8b8b] border-r-[#444444] border-b-[#444444] -z-10 shadow-[2px_2px_0px_#000000]"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
               />
             )}
           </button>
@@ -68,31 +68,31 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
             onClick={() => setActiveTab('entidades')}
             onMouseEnter={() => setHoveredTab('entidades')}
             onMouseLeave={() => setHoveredTab(null)}
-            className={`relative flex items-center gap-2 px-3.5 py-2 transition-all font-display text-xs sm:text-sm tracking-wider select-none cursor-pointer ${
+            className={`relative flex items-center gap-2 px-4 py-2.5 font-minecraft text-sm select-none cursor-pointer transition-all duration-100 ${
               activeTab === 'entidades'
-                ? 'text-primary font-bold'
-                : 'text-[#888888] hover:text-white'
+                ? 'text-primary'
+                : 'text-[#aaaaaa] hover:text-white'
             }`}
           >
-            <Skull className="w-3.5 h-3.5" />
+            <Skull className="w-4 h-4" />
             <span>ENTIDADES</span>
 
             {activeTab === 'entidades' && (
               <motion.div
                 layoutId="active-indicator"
-                className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
-                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                className="absolute inset-0 bg-[#1e3f22]/60 border-2 border-t-[#4ade80] border-l-[#4ade80] border-r-[#155e2f] border-b-[#155e2f] -z-20 shadow-[2px_2px_0px_#000000]"
+                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
               />
             )}
 
-            {hoveredTab === 'entidades' && (
+            {hoveredTab === 'entidades' && activeTab !== 'entidades' && (
               <motion.div
                 layoutId="hover-indicator"
-                className="absolute inset-0 bg-primary/10 border border-primary/20 -z-10 rounded"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                className="absolute inset-0 bg-[#2c2c2c] border-2 border-t-[#8b8b8b] border-l-[#8b8b8b] border-r-[#444444] border-b-[#444444] -z-10 shadow-[2px_2px_0px_#000000]"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
               />
             )}
           </button>
@@ -101,31 +101,31 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
             onClick={() => setActiveTab('stats')}
             onMouseEnter={() => setHoveredTab('stats')}
             onMouseLeave={() => setHoveredTab(null)}
-            className={`relative flex items-center gap-2 px-3.5 py-2 transition-all font-display text-xs sm:text-sm tracking-wider select-none cursor-pointer ${
+            className={`relative flex items-center gap-2 px-4 py-2.5 font-minecraft text-sm select-none cursor-pointer transition-all duration-100 ${
               activeTab === 'stats'
-                ? 'text-primary font-bold'
-                : 'text-[#888888] hover:text-white'
+                ? 'text-primary'
+                : 'text-[#aaaaaa] hover:text-white'
             }`}
           >
-            <TrendingUp className="w-3.5 h-3.5" />
+            <TrendingUp className="w-4 h-4" />
             <span>ESTATISTICAS</span>
 
             {activeTab === 'stats' && (
               <motion.div
                 layoutId="active-indicator"
-                className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
-                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                className="absolute inset-0 bg-[#1e3f22]/60 border-2 border-t-[#4ade80] border-l-[#4ade80] border-r-[#155e2f] border-b-[#155e2f] -z-20 shadow-[2px_2px_0px_#000000]"
+                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
               />
             )}
 
-            {hoveredTab === 'stats' && (
+            {hoveredTab === 'stats' && activeTab !== 'stats' && (
               <motion.div
                 layoutId="hover-indicator"
-                className="absolute inset-0 bg-primary/10 border border-primary/20 -z-10 rounded"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                className="absolute inset-0 bg-[#2c2c2c] border-2 border-t-[#8b8b8b] border-l-[#8b8b8b] border-r-[#444444] border-b-[#444444] -z-10 shadow-[2px_2px_0px_#000000]"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
               />
             )}
           </button>
@@ -134,31 +134,31 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
             onClick={() => setActiveTab('como-funciona')}
             onMouseEnter={() => setHoveredTab('como-funciona')}
             onMouseLeave={() => setHoveredTab(null)}
-            className={`relative flex items-center gap-2 px-3.5 py-2 transition-all font-display text-xs sm:text-sm tracking-wider select-none cursor-pointer ${
+            className={`relative flex items-center gap-2 px-4 py-2.5 font-minecraft text-sm select-none cursor-pointer transition-all duration-100 ${
               activeTab === 'como-funciona'
-                ? 'text-primary font-bold'
-                : 'text-[#888888] hover:text-white'
+                ? 'text-primary'
+                : 'text-[#aaaaaa] hover:text-white'
             }`}
           >
-            <HelpCircle className="w-3.5 h-3.5" />
+            <HelpCircle className="w-4 h-4" />
             <span>COMO FUNCIONA</span>
 
             {activeTab === 'como-funciona' && (
               <motion.div
                 layoutId="active-indicator"
-                className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
-                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                className="absolute inset-0 bg-[#1e3f22]/60 border-2 border-t-[#4ade80] border-l-[#4ade80] border-r-[#155e2f] border-b-[#155e2f] -z-20 shadow-[2px_2px_0px_#000000]"
+                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
               />
             )}
 
-            {hoveredTab === 'como-funciona' && (
+            {hoveredTab === 'como-funciona' && activeTab !== 'como-funciona' && (
               <motion.div
                 layoutId="hover-indicator"
-                className="absolute inset-0 bg-primary/10 border border-primary/20 -z-10 rounded"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                className="absolute inset-0 bg-[#2c2c2c] border-2 border-t-[#8b8b8b] border-l-[#8b8b8b] border-r-[#444444] border-b-[#444444] -z-10 shadow-[2px_2px_0px_#000000]"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
               />
             )}
           </button>

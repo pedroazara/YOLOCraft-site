@@ -635,17 +635,6 @@ export default function DetectorPanel({
               <UploadCloud className="w-4 h-4" />
               <span>ENVIAR OU COLAR (CTRL + V)</span>
             </button>
-            <button 
-              onClick={toggleLiveStream}
-              className={`px-6 py-3.5 border font-mono text-xs font-bold uppercase flex items-center justify-center gap-3 transition-all duration-200 cursor-pointer ${
-                isLive 
-                  ? 'bg-red-500/10 border-red-500 text-red-400 hover:bg-red-500/20' 
-                  : 'bg-transparent border-[#333333] text-gray-400 hover:text-primary hover:border-primary'
-              }`}
-            >
-              <Radar className="w-4 h-4 animate-pulse" />
-              <span>{isLive ? 'DESATIVAR FEED VIVO' : 'FEED VIVO DE REDSTONE'}</span>
-            </button>
           </div>
         </div>
 
