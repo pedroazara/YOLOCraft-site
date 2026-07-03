@@ -1342,9 +1342,11 @@ export default function DetectorPanel({
                     if (d.confidence * 100 < confidenceThreshold) return null;
                     if (!d.polygon || d.polygon.length === 0) return null;
                     return (
-                      <polygon 
+                      <motion.polygon 
                         key={i} 
-                        points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')} 
+                        layout
+                        animate={{ points: d.polygon.map(p => `${p[0]},${p[1]}`).join(' ') }} 
+                        transition={{ type: 'spring', stiffness: 90, damping: 20 }}
                         fill="black" 
                       />
                     );
@@ -1359,20 +1361,26 @@ export default function DetectorPanel({
                     const hasPolygon = d.polygon && d.polygon.length > 0;
                     if (hasPolygon) {
                       return (
-                        <polygon 
+                        <motion.polygon 
                           key={i} 
-                          points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')} 
+                          layout
+                          animate={{ points: d.polygon.map(p => `${p[0]},${p[1]}`).join(' ') }} 
+                          transition={{ type: 'spring', stiffness: 90, damping: 20 }}
                           fill="white" 
                         />
                       );
                     } else {
                       return (
-                        <rect
+                        <motion.rect
                           key={i}
-                          x={d.box[0]}
-                          y={d.box[1]}
-                          width={d.box[2] - d.box[0]}
-                          height={d.box[3] - d.box[1]}
+                          layout
+                          animate={{
+                            x: d.box[0],
+                            y: d.box[1],
+                            width: d.box[2] - d.box[0],
+                            height: d.box[3] - d.box[1]
+                          }}
+                          transition={{ type: 'spring', stiffness: 90, damping: 20 }}
                           fill="white"
                         />
                       );
@@ -2329,9 +2337,11 @@ export default function DetectorPanel({
                                 if (d.confidence * 100 < confidenceThreshold) return null;
                                 if (!d.polygon || d.polygon.length === 0) return null;
                                 return (
-                                  <polygon 
+                                  <motion.polygon 
                                     key={i} 
-                                    points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')} 
+                                    layout
+                                    animate={{ points: d.polygon.map(p => `${p[0]},${p[1]}`).join(' ') }} 
+                                    transition={{ type: 'spring', stiffness: 90, damping: 20 }}
                                     fill="black" 
                                   />
                                 );
@@ -2346,20 +2356,26 @@ export default function DetectorPanel({
                                 const hasPolygon = d.polygon && d.polygon.length > 0;
                                 if (hasPolygon) {
                                   return (
-                                    <polygon 
+                                    <motion.polygon 
                                       key={i} 
-                                      points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')} 
+                                      layout
+                                      animate={{ points: d.polygon.map(p => `${p[0]},${p[1]}`).join(' ') }} 
+                                      transition={{ type: 'spring', stiffness: 90, damping: 20 }}
                                       fill="white" 
                                     />
                                   );
                                 } else {
                                   return (
-                                    <rect
+                                    <motion.rect
                                       key={i}
-                                      x={d.box[0]}
-                                      y={d.box[1]}
-                                      width={d.box[2] - d.box[0]}
-                                      height={d.box[3] - d.box[1]}
+                                      layout
+                                      animate={{
+                                        x: d.box[0],
+                                        y: d.box[1],
+                                        width: d.box[2] - d.box[0],
+                                        height: d.box[3] - d.box[1]
+                                      }}
+                                      transition={{ type: 'spring', stiffness: 90, damping: 20 }}
                                       fill="white"
                                     />
                                   );
