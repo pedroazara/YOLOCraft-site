@@ -1341,12 +1341,17 @@ export default function DetectorPanel({
                   {validDetections.map((d, i) => {
                     if (d.confidence * 100 < confidenceThreshold) return null;
                     if (!d.polygon || d.polygon.length === 0) return null;
+                    const polyKey = `${i}-${d.polygon.map(p => `${p[0]},${p[1]}`).join(',')}`;
+                    const cx = (d.box[0] + d.box[2]) / 2;
+                    const cy = (d.box[1] + d.box[3]) / 2;
                     return (
                       <motion.polygon 
-                        key={i} 
-                        layout
-                        animate={{ points: d.polygon.map(p => `${p[0]},${p[1]}`).join(' ') }} 
-                        transition={{ type: 'spring', stiffness: 90, damping: 20 }}
+                        key={polyKey} 
+                        points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')} 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+                        style={{ transformOrigin: `${cx}px ${cy}px` }}
                         fill="black" 
                       />
                     );
@@ -1359,28 +1364,34 @@ export default function DetectorPanel({
                   {validDetections.map((d, i) => {
                     if (d.confidence * 100 < confidenceThreshold) return null;
                     const hasPolygon = d.polygon && d.polygon.length > 0;
+                    const cx = (d.box[0] + d.box[2]) / 2;
+                    const cy = (d.box[1] + d.box[3]) / 2;
                     if (hasPolygon) {
+                      const polyKey = `${i}-${d.polygon.map(p => `${p[0]},${p[1]}`).join(',')}`;
                       return (
                         <motion.polygon 
-                          key={i} 
-                          layout
-                          animate={{ points: d.polygon.map(p => `${p[0]},${p[1]}`).join(' ') }} 
-                          transition={{ type: 'spring', stiffness: 90, damping: 20 }}
+                          key={polyKey} 
+                          points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')} 
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+                          style={{ transformOrigin: `${cx}px ${cy}px` }}
                           fill="white" 
                         />
                       );
                     } else {
+                      const boxKey = `${i}-${d.box.join(',')}`;
                       return (
                         <motion.rect
-                          key={i}
-                          layout
-                          animate={{
-                            x: d.box[0],
-                            y: d.box[1],
-                            width: d.box[2] - d.box[0],
-                            height: d.box[3] - d.box[1]
-                          }}
-                          transition={{ type: 'spring', stiffness: 90, damping: 20 }}
+                          key={boxKey}
+                          x={d.box[0]}
+                          y={d.box[1]}
+                          width={d.box[2] - d.box[0]}
+                          height={d.box[3] - d.box[1]}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+                          style={{ transformOrigin: `${cx}px ${cy}px` }}
                           fill="white"
                         />
                       );
@@ -1473,14 +1484,15 @@ export default function DetectorPanel({
                   {/* 1. Draw Segmentation Contour */}
                   {hasPolygon && (viewMode === 'overlay' || viewMode === 'highlight' || viewMode === 'threshold') && (
                     <motion.polygon
-                      key={`${i}-${d.polygon.length}-${d.polygon[0]?.[0] || 0}-${viewMode}`}
+                      key={`${i}-${d.polygon.map(p => `${p[0]},${p[1]}`).join(',')}-${viewMode}`}
                       points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')}
                       fill={viewMode === 'threshold' ? '#ffffff' : (viewMode === 'highlight' ? 'none' : `${color}4D`)}
                       stroke={viewMode === 'threshold' ? '#ffffff' : color}
-                      initial={{ opacity: 0.2, strokeWidth: isZoomed ? 10 : 7 }}
-                      animate={{ opacity: 1, strokeWidth: isZoomed ? 4 : 2.5 }}
-                      transition={{ duration: 0.45, ease: "easeOut" }}
-                      className="transition-all duration-200 group-hover/det:stroke-[3px] animate-target-blink"
+                      initial={{ opacity: 0, scale: 0.95, strokeWidth: isZoomed ? 10 : 7 }}
+                      animate={{ opacity: 1, scale: 1, strokeWidth: isZoomed ? 4 : 2.5 }}
+                      transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+                      style={{ transformOrigin: `${(d.box[0] + d.box[2]) / 2}px ${(d.box[1] + d.box[3]) / 2}px` }}
+                      className="transition-all duration-200 group-hover/det:stroke-[3px]"
                     />
                   )}
 
@@ -2336,12 +2348,17 @@ export default function DetectorPanel({
                               {apiData.detections.map((d, i) => {
                                 if (d.confidence * 100 < confidenceThreshold) return null;
                                 if (!d.polygon || d.polygon.length === 0) return null;
+                                const polyKey = `${i}-${d.polygon.map(p => `${p[0]},${p[1]}`).join(',')}`;
+                                const cx = (d.box[0] + d.box[2]) / 2;
+                                const cy = (d.box[1] + d.box[3]) / 2;
                                 return (
                                   <motion.polygon 
-                                    key={i} 
-                                    layout
-                                    animate={{ points: d.polygon.map(p => `${p[0]},${p[1]}`).join(' ') }} 
-                                    transition={{ type: 'spring', stiffness: 90, damping: 20 }}
+                                    key={polyKey} 
+                                    points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')} 
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+                                    style={{ transformOrigin: `${cx}px ${cy}px` }}
                                     fill="black" 
                                   />
                                 );
@@ -2354,28 +2371,34 @@ export default function DetectorPanel({
                               {apiData.detections.map((d, i) => {
                                 if (d.confidence * 100 < confidenceThreshold) return null;
                                 const hasPolygon = d.polygon && d.polygon.length > 0;
+                                const cx = (d.box[0] + d.box[2]) / 2;
+                                const cy = (d.box[1] + d.box[3]) / 2;
                                 if (hasPolygon) {
+                                  const polyKey = `${i}-${d.polygon.map(p => `${p[0]},${p[1]}`).join(',')}`;
                                   return (
                                     <motion.polygon 
-                                      key={i} 
-                                      layout
-                                      animate={{ points: d.polygon.map(p => `${p[0]},${p[1]}`).join(' ') }} 
-                                      transition={{ type: 'spring', stiffness: 90, damping: 20 }}
+                                      key={polyKey} 
+                                      points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')} 
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+                                      style={{ transformOrigin: `${cx}px ${cy}px` }}
                                       fill="white" 
                                     />
                                   );
                                 } else {
+                                  const boxKey = `${i}-${d.box.join(',')}`;
                                   return (
                                     <motion.rect
-                                      key={i}
-                                      layout
-                                      animate={{
-                                        x: d.box[0],
-                                        y: d.box[1],
-                                        width: d.box[2] - d.box[0],
-                                        height: d.box[3] - d.box[1]
-                                      }}
-                                      transition={{ type: 'spring', stiffness: 90, damping: 20 }}
+                                      key={boxKey}
+                                      x={d.box[0]}
+                                      y={d.box[1]}
+                                      width={d.box[2] - d.box[0]}
+                                      height={d.box[3] - d.box[1]}
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+                                      style={{ transformOrigin: `${cx}px ${cy}px` }}
                                       fill="white"
                                     />
                                   );
@@ -2463,13 +2486,14 @@ export default function DetectorPanel({
                               {/* 1. Draw Segmentation Contour */}
                               {hasPolygon && (viewMode === 'overlay' || viewMode === 'highlight' || viewMode === 'threshold') && (
                                 <motion.polygon
-                                  key={`${i}-${d.polygon.length}-${d.polygon[0]?.[0] || 0}-${viewMode}`}
+                                  key={`${i}-${d.polygon.map(p => `${p[0]},${p[1]}`).join(',')}-${viewMode}`}
                                   points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')}
                                   fill={viewMode === 'threshold' ? '#ffffff' : (viewMode === 'highlight' ? 'none' : `${color}4D`)}
                                   stroke={viewMode === 'threshold' ? '#ffffff' : color}
-                                  initial={{ opacity: 0.2, strokeWidth: isZoomed ? 12 : 8 }}
-                                  animate={{ opacity: 1, strokeWidth: isZoomed ? 4 : 3 }}
-                                  transition={{ duration: 0.45, ease: "easeOut" }}
+                                  initial={{ opacity: 0, scale: 0.95, strokeWidth: isZoomed ? 12 : 8 }}
+                                  animate={{ opacity: 1, scale: 1, strokeWidth: isZoomed ? 4 : 3 }}
+                                  transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+                                  style={{ transformOrigin: `${(d.box[0] + d.box[2]) / 2}px ${(d.box[1] + d.box[3]) / 2}px` }}
                                   className="transition-all duration-200 group-hover/det:stroke-[4px]"
                                 />
                               )}
