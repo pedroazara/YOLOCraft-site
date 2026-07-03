@@ -333,4 +333,20 @@ body {
   animation: pulseSubtle 3s ease-in-out infinite;
 }
 
+@keyframes targetBlink {
+  0%, 100% {
+    stroke-width: 3px;
+    opacity: 1;
+  }
+  50% {
+    stroke-width: 1.5px;
+    opacity: 0.55;
+  }
+}
+
+.animate-target-blink {
+  animation: targetBlink 1.6s ease-in-out infinite;
+}
+
+
 

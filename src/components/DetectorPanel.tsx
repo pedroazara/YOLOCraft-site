@@ -712,7 +712,8 @@ export default function DetectorPanel({
   }, [marginRatio, grabcutIterations, hsvThreshold, watershedFgRatio, polyEpsilon, currentFile, detectorMode]);
 
   // Main client file processing
-  function processFile(file: File) {
+  function processFile(file: File, overrideMode?: 'individual' | 'comparative') {
+    const targetMode = overrideMode || detectorMode;
     setErrorMessage(null);
     setIsLive(false);
     setZoomedIndex(null);
@@ -735,7 +736,7 @@ export default function DetectorPanel({
       setScanProgress(20);
 
       if (serverMode === 'real') {
-        if (detectorMode === 'comparative') {
+        if (targetMode === 'comparative') {
           setScanStepText('CONECTANDO ENGINES COMPARATIVAS...');
           
           const runEngine = async (method: 'sam' | 'otsu' | 'hsv' | 'grabcut' | 'watershed'): Promise<ApiPredictResponse> => {
@@ -858,7 +859,7 @@ export default function DetectorPanel({
           setScanProgress(65);
           setScanStepText('SIMULANDO RESPOSTA DA REDE NEURAL...');
           setTimeout(() => {
-            if (detectorMode === 'comparative') {
+            if (targetMode === 'comparative') {
               simulateComparativeLocal(imageUrl, file.name, originalW, originalH);
             } else {
               simulateLocalScan(imageUrl, file.name, originalW, originalH);
@@ -996,7 +997,8 @@ export default function DetectorPanel({
     }, 400);
   };
 
-  const loadPreset = (preset: typeof PRESET_SCANS[0]) => {
+  const loadPreset = (preset: typeof PRESET_SCANS[0], overrideMode?: 'individual' | 'comparative') => {
+    const targetMode = overrideMode || detectorMode;
     setErrorMessage(null);
     setIsLive(false);
     setZoomedIndex(null);
@@ -1038,7 +1040,7 @@ export default function DetectorPanel({
           }
         };
 
-        if (detectorMode === 'comparative') {
+        if (targetMode === 'comparative') {
           // Generate simulated classic methods
           const otsuDetections: ApiDetection[] = preset.detections.map(d => ({
             ...d,
@@ -1427,7 +1429,7 @@ export default function DetectorPanel({
                       fill={viewMode === 'threshold' ? '#ffffff' : (viewMode === 'highlight' ? 'none' : `${color}4D`)}
                       stroke={viewMode === 'threshold' ? '#ffffff' : color}
                       strokeWidth={isZoomed ? "4" : "2.5"}
-                      className="transition-all duration-200 group-hover/det:stroke-[3px]"
+                      className="transition-all duration-200 group-hover/det:stroke-[3px] animate-target-blink"
                     />
                   )}
 
@@ -1441,7 +1443,7 @@ export default function DetectorPanel({
                       fill={viewMode === 'threshold' ? '#ffffff' : 'none'}
                       stroke={viewMode === 'threshold' ? '#ffffff' : color}
                       strokeWidth={isZoomed ? "3" : "2"}
-                      className="transition-all duration-200 group-hover/det:stroke-[2.5px]"
+                      className="transition-all duration-200 group-hover/det:stroke-[2.5px] animate-target-blink"
                     />
                   )}
 
@@ -1576,9 +1578,9 @@ export default function DetectorPanel({
                   setDetectorMode('comparative');
                   setZoomedIndex(null);
                   if (currentFile) {
-                    processFile(currentFile);
+                    processFile(currentFile, 'comparative');
                   } else if (currentPreset) {
-                    loadPreset(currentPreset);
+                    loadPreset(currentPreset, 'comparative');
                   }
                 }}
                 disabled={isScanning}
