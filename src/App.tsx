@@ -18,6 +18,47 @@ function AppContent() {
   const [userEmail, setUserEmail] = useState<string | undefined>('PedroHenriqueAlmeida2004@gmail.com');
   const [externalLoadScan, setExternalLoadScan] = useState<ScanResult | null>(null);
   const [selectedMob, setSelectedMob] = useState<MobEntity | null>(null);
+  const [apiStatus, setApiStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+
+  // API Health status ping and 15s interval polling
+  useEffect(() => {
+    let isMounted = true;
+    let intervalId: any = null;
+
+    const checkApiStatus = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+      try {
+        const url = `${(import.meta as any).env?.VITE_API_BASE_URL || 'https://stimulate-excusably-subsystem.ngrok-free.dev'}/ping`;
+        const response = await fetch(url, {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (response.status === 200) {
+          const data = await response.json();
+          if (data && data.ping === 'pong') {
+            if (isMounted) setApiStatus('online');
+            return;
+          }
+        }
+        if (isMounted) setApiStatus('offline');
+      } catch (err) {
+        clearTimeout(timeoutId);
+        if (isMounted) setApiStatus('offline');
+      }
+    };
+
+    checkApiStatus();
+    intervalId = setInterval(checkApiStatus, 15000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, []);
 
   const { language, t, translateMob, getTranslatedMobDetails } = useLanguage();
 
@@ -139,6 +180,7 @@ function AppContent() {
         setActiveTab={setActiveTab} 
         onEnterClick={handleEnterClick} 
         userEmail={userEmail}
+        apiStatus={apiStatus}
       />
 
       {/* Main Container */}
@@ -154,6 +196,7 @@ function AppContent() {
               externalLoadScan={externalLoadScan}
               onClearExternalLoad={() => setExternalLoadScan(null)}
               onViewMobDetails={handleViewMobDetails}
+              apiStatus={apiStatus}
             />
 
             {/* Bento Grid Info: Scan Features */}

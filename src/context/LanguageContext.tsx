@@ -9,6 +9,7 @@ interface LanguageContextProps {
   t: (key: string) => string;
   translateMob: (mobName: string) => string;
   getTranslatedMobDetails: (entity: MobEntity) => MobEntity;
+  removeAccents: (str: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
@@ -357,6 +358,10 @@ const dictionary: { [key: string]: { pt: string; en: string } } = {
   'stats_time': { pt: 'Tempo de Inferencia', en: 'Inference Time' },
 
   // Detector Panel Main Screen
+  'single_mode': { pt: 'MODO INDIVIDUAL', en: 'SINGLE MODE' },
+  'comparative_mode': { pt: 'MODO COMPARATIVO', en: 'COMPARATIVE MODE' },
+  'comparative_desc': { pt: 'Compare o pipeline YOLO + SAM em tempo real contra 3 métodos clássicos de visão computacional (Otsu, HSV, GrabCut).', en: 'Compare the YOLO + SAM pipeline in real-time against 3 classic computer vision methods (Otsu, HSV, GrabCut).' },
+  'engines_running': { pt: 'EXECUTANDO 4 ENGINES EM PARALELO...', en: 'EXECUTING 4 ENGINES IN PARALLEL...' },
   'det_title': { pt: 'DETECTOR OPTICO YOLO-VOXEL', en: 'YOLO-VOXEL OPTICAL DETECTOR' },
   'det_subtitle': { pt: 'SISTEMA INTEGRADO DE RASTREAMENTO E RECONHECIMENTO DE ENTIDADES EM CHUNKS', en: 'INTEGRATED CHUNK ENTITY TRACKING & RECOGNITION SYSTEM' },
   'server_status': { pt: 'Status do Servidor:', en: 'Server Status:' },
@@ -459,7 +464,27 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const t = (key: string): string => {
     const entry = dictionary[key];
     if (!entry) return key;
-    return entry[language] || entry['pt'];
+    const val = entry[language] || entry['pt'];
+    
+    // List of keys to KEEP accents because they are rendered in font-sans (Inter)
+    const keepAccentsKeys = [
+      'bento1_desc',
+      'bento2_desc',
+      'enc_subtitle',
+      'stats_subtitle',
+      'footer_desc',
+      'footer_copy',
+      'temp_passive_desc',
+      'temp_neutral_desc',
+      'temp_hostile_desc',
+      'temp_range_desc',
+      'temp_default'
+    ];
+    
+    if (language === 'pt' && !keepAccentsKeys.includes(key) && !key.endsWith('_desc')) {
+      return val.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    return val;
   };
 
   const translateMob = (mobName: string): string => {
@@ -467,38 +492,50 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     // Check if we have exact translation for this mob
     const entry = mobTranslations[key];
+    let result = mobName;
     if (entry) {
-      return entry[language];
-    }
-
-    // Secondary matches (e.g. "zumbi #01" or "zombie #01" -> extract and match)
-    for (const [mKey, trans] of Object.entries(mobTranslations)) {
-      if (key.includes(mKey)) {
-        const rest = mobName.toLowerCase().replace(mKey, '').toUpperCase().trim();
-        const transValue = trans[language];
-        return rest ? `${transValue} ${rest}` : transValue;
+      result = entry[language];
+    } else {
+      // Secondary matches (e.g. "zumbi #01" or "zombie #01" -> extract and match)
+      for (const [mKey, trans] of Object.entries(mobTranslations)) {
+        if (key.includes(mKey)) {
+          const rest = mobName.toLowerCase().replace(mKey, '').toUpperCase().trim();
+          const transValue = trans[language];
+          result = rest ? `${transValue} ${rest}` : transValue;
+          break;
+        }
       }
     }
 
-    return mobName;
+    if (language === 'pt') {
+      return result.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    return result;
   };
 
   const getTranslatedMobDetails = (entity: MobEntity): MobEntity => {
     const trans = detailedMobTranslations[entity.id];
     if (!trans) return entity;
     
+    const strip = (s: string) => language === 'pt' ? s.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : s;
+    
     return {
       ...entity,
-      name: trans.name[language],
-      type: trans.type[language],
+      name: strip(trans.name[language]),
+      type: strip(trans.type[language]),
       description: trans.description[language],
       behavior: trans.behavior[language],
-      drops: trans.drops[language]
+      drops: trans.drops[language].map(strip)
     };
   };
 
+  const removeAccents = (str: string): string => {
+    if (!str) return '';
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, translateMob, getTranslatedMobDetails }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, translateMob, getTranslatedMobDetails, removeAccents }}>
       {children}
     </LanguageContext.Provider>
   );

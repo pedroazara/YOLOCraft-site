@@ -27,7 +27,7 @@ export interface ScanResult {
   id: string;
   name: string;
   imageUrl: string;
-  threatLevel: 'CRÍTICO' | 'MÉDIO' | 'ALTO' | 'BAIXO';
+  threatLevel: 'CRITICO' | 'MEDIO' | 'ALTO' | 'BAIXO';
   entitiesCount: number;
   timestamp: string;
   depth: string;

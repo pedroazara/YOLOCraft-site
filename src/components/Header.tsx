@@ -10,9 +10,10 @@ interface HeaderProps {
   setActiveTab: (tab: ActiveTab) => void;
   onEnterClick: () => void;
   userEmail?: string;
+  apiStatus: 'online' | 'offline' | 'checking';
 }
 
-export default function Header({ activeTab, setActiveTab, onEnterClick, userEmail }: HeaderProps) {
+export default function Header({ activeTab, setActiveTab, onEnterClick, userEmail, apiStatus }: HeaderProps) {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
@@ -172,6 +173,24 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
 
         {/* Right Action buttons (Language switcher + Mobile Menu Toggle) */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* API Status Indicator */}
+          <div className="flex items-center gap-2 bg-[#1a1a1a] px-3 py-1.5 border-2 border-t-[#555555] border-l-[#555555] border-r-[#111111] border-b-[#111111] shadow-[2px_2px_0px_#000000] select-none h-[34px]">
+            <span className={`w-2 h-2 rounded-none ${
+              apiStatus === 'online' 
+                ? 'bg-[#4ade80] shadow-[0_0_8px_#4ade80] animate-pulse' 
+                : apiStatus === 'checking'
+                ? 'bg-amber-400 animate-pulse'
+                : 'bg-red-500 shadow-[0_0_8px_#ef4444]'
+            }`} />
+            <span className="font-minecraft text-[8px] sm:text-[9px] font-bold text-gray-300 uppercase whitespace-nowrap">
+              {apiStatus === 'online' 
+                ? 'API ONLINE' 
+                : apiStatus === 'checking' 
+                ? (language === 'pt' ? 'TESTANDO' : 'CHECKING') 
+                : 'API OFFLINE'}
+            </span>
+          </div>
+
           {/* Language Toggle Button */}
           <button
             onClick={() => setLanguage(language === 'pt' ? 'en' : 'pt')}
