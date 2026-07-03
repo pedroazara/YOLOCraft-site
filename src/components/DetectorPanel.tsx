@@ -1117,15 +1117,99 @@ export default function DetectorPanel({
     return (cls.length + 6) * 8.2 + 8;
   };
 
+  const getConstrainedPredictions = (
+    vData: ApiPredictResponse,
+    methodKey: 'sam' | 'otsu' | 'hsv' | 'grabcut' | 'watershed'
+  ): ApiPredictResponse => {
+    if (methodKey === 'sam') return vData;
+
+    // Get the reference boxes from the SAM (YOLO) engine
+    const yoloDetections = comparativeData?.sam?.detections || [];
+    if (yoloDetections.length === 0) {
+      // If YOLO didn't detect any boxes, there are no valid targets to restrict classical segmentation to
+      return { ...vData, detections: [] };
+    }
+
+    const constrainedDetections: ApiDetection[] = [];
+
+    for (const d of vData.detections || []) {
+      // Find the YOLO box with the maximum intersection area
+      let bestYolo: typeof yoloDetections[0] | null = null;
+      let maxIntersectionArea = 0;
+
+      const [cx1, cy1, cx2, cy2] = d.box;
+      const cWidth = cx2 - cx1;
+      const cHeight = cy2 - cy1;
+      if (cWidth <= 0 || cHeight <= 0) continue;
+
+      for (const yolo_d of yoloDetections) {
+        const [yx1, yy1, yx2, yy2] = yolo_d.box;
+        
+        // Calculate intersection rectangle
+        const ix1 = Math.max(cx1, yx1);
+        const iy1 = Math.max(cy1, yy1);
+        const ix2 = Math.min(cx2, yx2);
+        const iy2 = Math.min(cy2, yy2);
+
+        const iWidth = ix2 - ix1;
+        const iHeight = iy2 - iy1;
+
+        if (iWidth > 0 && iHeight > 0) {
+          const intersectionArea = iWidth * iHeight;
+          if (intersectionArea > maxIntersectionArea) {
+            maxIntersectionArea = intersectionArea;
+            bestYolo = yolo_d;
+          }
+        }
+      }
+
+      // If we have a matching YOLO box, constrain/clip this classical detection to it!
+      if (bestYolo) {
+        const [yx1, yy1, yx2, yy2] = bestYolo.box;
+
+        // 1. Clip bounding box
+        const clippedBox: [number, number, number, number] = [
+          Math.max(cx1, yx1),
+          Math.max(cy1, yy1),
+          Math.min(cx2, yx2),
+          Math.min(cy2, yy2)
+        ];
+
+        // 2. Clip/clamp polygon coordinates
+        let clippedPolygon: [number, number][] = [];
+        if (d.polygon && d.polygon.length > 0) {
+          clippedPolygon = d.polygon.map(([px, py]) => [
+            Math.max(yx1, Math.min(yx2, px)),
+            Math.max(yy1, Math.min(yy2, py))
+          ] as [number, number]);
+        }
+
+        constrainedDetections.push({
+          ...d,
+          class: bestYolo.class, // Inherit class from YOLO detection
+          confidence: d.confidence,
+          box: clippedBox,
+          polygon: clippedPolygon
+        });
+      }
+    }
+
+    return {
+      ...vData,
+      detections: constrainedDetections
+    };
+  };
+
   const renderViewport = (
     vData: ApiPredictResponse,
     methodKey: 'sam' | 'otsu' | 'hsv' | 'grabcut' | 'watershed',
     methodLabel: string,
     isZoomable: boolean = true
   ) => {
+    const constrainedData = getConstrainedPredictions(vData, methodKey);
     let viewBoxVal = `0 0 ${vData.width} ${vData.height}`;
-    if (zoomedIndex !== null && vData.detections[zoomedIndex] && isZoomable) {
-      const d = vData.detections[zoomedIndex];
+    if (zoomedIndex !== null && constrainedData.detections[zoomedIndex] && isZoomable) {
+      const d = constrainedData.detections[zoomedIndex];
       const x1 = d.box[0];
       const y1 = d.box[1];
       const x2 = d.box[2];
@@ -1144,7 +1228,7 @@ export default function DetectorPanel({
       viewBoxVal = `${zoomX} ${zoomY} ${zoomW} ${zoomH}`;
     }
 
-    const validDetections = vData.detections || [];
+    const validDetections = constrainedData.detections || [];
     const isExpanded = expandedMethod === methodKey;
 
     return (
