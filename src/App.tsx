@@ -19,6 +19,8 @@ function AppContent() {
   const [externalLoadScan, setExternalLoadScan] = useState<ScanResult | null>(null);
   const [selectedMob, setSelectedMob] = useState<MobEntity | null>(null);
   const [apiStatus, setApiStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+  const [howItWorksInitialMethod, setHowItWorksInitialMethod] = useState<'sam' | 'otsu' | 'hsv' | 'grabcut' | 'watershed' | null>(null);
+  const [howItWorksInitialSubSection, setHowItWorksInitialSubSection] = useState<'visao-geral' | 'dataset' | 'yolo-redes' | 'metodos' | 'estrutura' | 'modelo' | 'instalacao' | 'roadmap' | undefined>(undefined);
 
   // API Health status ping and 15s interval polling
   useEffect(() => {
@@ -197,6 +199,11 @@ function AppContent() {
               onClearExternalLoad={() => setExternalLoadScan(null)}
               onViewMobDetails={handleViewMobDetails}
               apiStatus={apiStatus}
+              onViewMethodDetails={(method) => {
+                setHowItWorksInitialMethod(method);
+                setHowItWorksInitialSubSection('metodos');
+                setActiveTab('como-funciona');
+              }}
             />
 
             {/* Bento Grid Info: Scan Features */}
@@ -318,7 +325,14 @@ function AppContent() {
 
         {/* TAB 3: COMO FUNCIONA (Detailed Technical Lab Manual / README specs) */}
         <div className={`animate-fade-in ${activeTab !== 'como-funciona' ? 'hidden' : ''}`}>
-          <HowItWorks />
+          <HowItWorks 
+            initialSubSection={howItWorksInitialSubSection}
+            initialFocusedMethod={howItWorksInitialMethod}
+            onClearFocus={() => {
+              setHowItWorksInitialMethod(null);
+              setHowItWorksInitialSubSection(undefined);
+            }}
+          />
         </div>
 
           {/* Global Details Modal */}

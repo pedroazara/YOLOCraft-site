@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ScanResult, ApiPredictResponse, ApiDetection } from '../types';
-import { UploadCloud, Radar, Shield, Eye, Download, Info, Check, RefreshCw, Layers, AlertTriangle } from 'lucide-react';
+import { UploadCloud, Radar, Shield, Eye, Download, Info, Check, RefreshCw, Layers, AlertTriangle, Search, Sparkles, Camera } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -11,6 +11,7 @@ interface DetectorPanelProps {
   onClearExternalLoad?: () => void;
   onViewMobDetails?: (mobClass: string) => void;
   apiStatus?: 'online' | 'offline' | 'checking';
+  onViewMethodDetails?: (method: 'sam' | 'otsu' | 'hsv' | 'grabcut' | 'watershed') => void;
 }
 
 // Map class names to beautiful Minecraft palette colors
@@ -233,7 +234,8 @@ export default function DetectorPanel({
   externalLoadScan, 
   onClearExternalLoad,
   onViewMobDetails,
-  apiStatus = 'checking'
+  apiStatus = 'checking',
+  onViewMethodDetails
 }: DetectorPanelProps) {
   const { language, t, translateMob } = useLanguage();
   const [detectorMode, setDetectorMode] = useState<'individual' | 'comparative'>('individual');
@@ -276,6 +278,80 @@ export default function DetectorPanel({
   const progressIntervalRef = useRef<any>(null);
 
   const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'https://stimulate-excusably-subsystem.ngrok-free.dev';
+
+  // State for dataset test image search
+  const [sampleClasses, setSampleClasses] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [samples, setSamples] = useState<Array<{ name: string; url: string; classes: string[] }>>([]);
+  const [isFetchingSamples, setIsFetchingSamples] = useState(false);
+  const [isDownloadingSample, setIsDownloadingSample] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const fetchSampleClasses = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/samples/classes`, {
+        headers: { "ngrok-skip-browser-warning": "true" },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.classes)) {
+          setSampleClasses(data.classes);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch sample classes:', err);
+    }
+  };
+
+  const fetchSamples = async (mobName?: string) => {
+    setIsFetchingSamples(true);
+    try {
+      let url = `${API_BASE_URL.replace(/\/$/, '')}/samples?count=4`;
+      if (mobName && mobName.trim()) {
+        url += `&mob=${encodeURIComponent(mobName.trim())}`;
+      }
+      const res = await fetch(url, {
+        headers: { "ngrok-skip-browser-warning": "true" },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.samples)) {
+          setSamples(data.samples);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch samples:', err);
+    } finally {
+      setIsFetchingSamples(false);
+    }
+  };
+
+  const handleSampleClick = async (sample: { name: string; url: string }) => {
+    if (isScanning || isDownloadingSample) return;
+    setIsDownloadingSample(sample.url);
+    try {
+      const fullUrl = `${API_BASE_URL.replace(/\/$/, '')}${sample.url}`;
+      const res = await fetch(fullUrl, {
+        headers: { "ngrok-skip-browser-warning": "true" },
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch image: ${res.statusText}`);
+      }
+      const blob = await res.blob();
+      const file = new File([blob], sample.name, { type: blob.type || 'image/jpeg' });
+      processFile(file);
+    } catch (err) {
+      console.error('Error loading sample image:', err);
+      setErrorMessage(language === 'pt' ? 'Erro ao baixar imagem de teste.' : 'Error downloading sample image.');
+    } finally {
+      setIsDownloadingSample(null);
+    }
+  };
+
+  useEffect(() => {
+    fetchSampleClasses();
+    fetchSamples();
+  }, []);
 
   useEffect(() => {
     // Default to real server mode using the provided ngrok API url
@@ -1103,6 +1179,20 @@ export default function DetectorPanel({
           </span>
         </div>
 
+        {/* Method Info / Guide Button */}
+        {onViewMethodDetails && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewMethodDetails(methodKey);
+            }}
+            title={language === 'pt' ? 'Como funciona este método?' : 'How does this method work?'}
+            className="absolute top-2 right-2 z-20 bg-black/80 hover:bg-primary border border-[#333333] hover:border-primary p-1.5 text-gray-400 hover:text-black shadow-md transition-all duration-200 cursor-pointer"
+          >
+            <Info className="w-3.5 h-3.5" />
+          </button>
+        )}
+
         <div className="w-full h-full relative flex items-center justify-center bg-black overflow-hidden aspect-video">
           <motion.svg 
             viewBox={viewBoxVal}
@@ -1220,9 +1310,17 @@ export default function DetectorPanel({
                 <g 
                   key={i} 
                   onClick={(e) => {
-                    e.stopPropagation();
-                    if (isZoomable) {
-                      setZoomedIndex(zoomedIndex === i ? null : i);
+                    if (detectorMode === 'comparative' && !isExpanded) {
+                      e.stopPropagation();
+                      setExpandedMethod(methodKey);
+                      if (isZoomable) {
+                        setZoomedIndex(i);
+                      }
+                    } else {
+                      e.stopPropagation();
+                      if (isZoomable) {
+                        setZoomedIndex(zoomedIndex === i ? null : i);
+                      }
                     }
                   }}
                   className="cursor-pointer group/det"
@@ -1418,34 +1516,182 @@ export default function DetectorPanel({
           </div>
         </div>
 
-        {/* Biome Presets Switcher Frame */}
+        {/* Biome Presets Switcher Frame (Now Mob Search and Sample Gallery) */}
         <div className="w-full lg:w-2/5 bg-[#111111] p-6 border border-[#333333] relative">
           <div className="corner-bracket-tl"></div>
           <div className="corner-bracket-tr"></div>
           <div className="corner-bracket-bl"></div>
           <div className="corner-bracket-br"></div>
 
-          <h3 className="font-display text-base text-secondary uppercase font-bold tracking-wider mb-3 flex items-center gap-2">
-            <Radar className="w-4 h-4 text-secondary" />
-            <span>{language === 'pt' ? 'Varreduras de Teste Rapido' : 'Quick Test Scans'}</span>
+          <h3 className="font-display text-base text-secondary uppercase font-bold tracking-wider mb-2.5 flex items-center gap-2">
+            <Search className="w-4 h-4 text-secondary" />
+            <span>{language === 'pt' ? 'Imagens de Teste' : 'Test Sample Search'}</span>
           </h3>
-          <p className="font-sans text-xs text-gray-400 leading-relaxed mb-4 font-normal">
+          <p className="font-sans text-xs text-gray-400 leading-normal mb-4 font-normal">
             {language === 'pt'
-              ? 'Não tem uma captura disponível? Clique em um dos cenários abaixo para rodar o pipeline com dados de teste integrados:'
-              : 'Don\'t have a screenshot available? Click one of the scenarios below to run the pipeline with built-in test data:'}
+              ? 'Pesquise por classe de mob ou sorteie aleatoriamente para simular detecções com o dataset real:'
+              : 'Search by mob class or roll randomly to simulate real-world dataset detections:'}
           </p>
-          <div className="grid grid-cols-2 gap-3">
-            {PRESET_SCANS.map((p, i) => (
+
+          {/* Search Inputs Row */}
+          <div className="space-y-3 relative">
+            <div className="flex gap-2 relative">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder={language === 'pt' ? 'Ex: creeper, zombie, skeleton...' : 'E.g. creeper, zombie, skeleton...'}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  className="w-full bg-[#161616] border border-[#333333] text-white font-mono text-xs px-3.5 py-2 focus:outline-none focus:border-primary transition-all rounded-none placeholder-gray-600"
+                />
+                
+                {/* Autocomplete Suggestions Dropdown */}
+                {showSuggestions && (
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-[#1a1a1a] border-2 border-[#333333] z-50 max-h-40 overflow-y-auto divide-y divide-[#222] shadow-2xl">
+                    {sampleClasses
+                      .filter(cls => !searchQuery || cls.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .map((cls) => (
+                        <button
+                          key={cls}
+                          type="button"
+                          onClick={() => {
+                            setSearchQuery(cls);
+                            setShowSuggestions(false);
+                            fetchSamples(cls);
+                          }}
+                          className="w-full text-left px-3 py-2 font-mono text-xs text-gray-300 hover:bg-[#222222] hover:text-primary transition-all flex justify-between items-center"
+                        >
+                          <span>{cls}</span>
+                          <span className="text-[9px] text-gray-500 font-normal uppercase">mob class</span>
+                        </button>
+                      ))}
+                    {sampleClasses.filter(cls => !searchQuery || cls.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                      <div className="px-3 py-2.5 text-gray-500 font-mono text-[10px]">
+                        {language === 'pt' ? 'Nenhum mob correspondente' : 'No matching mobs'}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
               <button
-                key={i}
-                onClick={() => loadPreset(p)}
-                disabled={isScanning}
-                className="p-3 mc-button text-left flex flex-col gap-1 transition-all disabled:opacity-50"
+                onClick={() => {
+                  setShowSuggestions(false);
+                  fetchSamples(searchQuery);
+                }}
+                disabled={isFetchingSamples}
+                className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-black font-mono text-xs font-bold uppercase transition-all flex items-center gap-1 cursor-pointer"
               >
-                <span className="font-mono text-[9px] text-[#4ADE80] font-bold uppercase tracking-wider">{p.mob}</span>
-                <span className="font-sans text-xs text-white truncate font-medium">{p.name}</span>
+                <span>{language === 'pt' ? 'BUSCAR' : 'FIND'}</span>
               </button>
-            ))}
+
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setShowSuggestions(false);
+                  fetchSamples('');
+                }}
+                disabled={isFetchingSamples}
+                className="px-3.5 py-2 bg-[#222222] border border-[#333333] hover:border-primary hover:text-primary text-gray-300 font-mono text-xs font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer"
+                title={language === 'pt' ? 'Escolher aleatório' : 'Pick random'}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span>{language === 'pt' ? 'SORTEAR' : 'ROLL'}</span>
+              </button>
+            </div>
+
+            {/* Click-away overlay to close suggestions */}
+            {showSuggestions && (
+              <div 
+                className="fixed inset-0 z-40 bg-transparent" 
+                onClick={() => setShowSuggestions(false)}
+              />
+            )}
+          </div>
+
+          {/* Sample Images Gallery */}
+          <div className="mt-5 border-t border-[#222222] pt-4 min-h-[120px] flex flex-col justify-center">
+            {isFetchingSamples ? (
+              <div className="flex flex-col items-center justify-center gap-2 py-4">
+                <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+                <span className="font-mono text-[9px] text-gray-400 uppercase tracking-widest">
+                  {language === 'pt' ? 'PROCURANDO AMOSTRAS...' : 'FETCHING SAMPLES...'}
+                </span>
+              </div>
+            ) : samples.length > 0 ? (
+              <div className="space-y-3">
+                <span className="font-mono text-[8.5px] text-gray-500 uppercase tracking-widest block">
+                  {language === 'pt' ? 'CLIQUE EM UMA MINIATURA PARA DETECTAR:' : 'CLICK A THUMBNAIL TO DETECT:'}
+                </span>
+                <div className="grid grid-cols-4 gap-2.5">
+                  {samples.map((sample, sIdx) => {
+                    const isCurrentDownloading = isDownloadingSample === sample.url;
+                    // Format the file name elegantly (e.g. frame_008072.jpg -> FRM_008072)
+                    const formattedName = sample.name
+                      ? sample.name.replace(/\.[^/.]+$/, "").replace(/^frame_/, "FRM_")
+                      : `IMG_${sIdx + 1}`;
+                    return (
+                      <div
+                        key={sIdx}
+                        onClick={() => handleSampleClick(sample)}
+                        className={`group relative aspect-square bg-[#131313] border border-[#2d2d2d] hover:border-primary cursor-pointer overflow-hidden transition-all flex flex-col justify-between p-2.5 ${
+                          isScanning || isDownloadingSample ? 'opacity-60 cursor-not-allowed' : ''
+                        } hover:shadow-[0_0_15px_rgba(238,195,12,0.15)]`}
+                      >
+                        {/* Upper part: Icon and Name */}
+                        <div className="flex flex-col items-center justify-center flex-grow gap-1.5 pt-1">
+                          <Camera className="w-5 h-5 text-gray-600 group-hover:text-primary transition-colors group-hover:animate-pulse" />
+                          <span className="font-mono text-[8px] text-gray-400 group-hover:text-white transition-colors tracking-wider uppercase font-bold text-center block max-w-full truncate">
+                            {formattedName}
+                          </span>
+                        </div>
+
+                        {/* Hover Overlay indicator */}
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                          <span className="font-mono text-[8px] font-bold text-primary bg-[#111111] border border-primary/40 px-1.5 py-0.5 tracking-wider">
+                            {language === 'pt' ? 'ESCANEAR' : 'SCAN'}
+                          </span>
+                        </div>
+                        
+                        {/* Bottom classes list */}
+                        <div className="w-full flex flex-wrap gap-0.5 justify-center mt-1">
+                          {sample.classes?.slice(0, 2).map((cls) => (
+                            <span 
+                              key={cls}
+                              className="font-mono text-[7px] px-1.5 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-none uppercase block truncate max-w-full font-bold"
+                              title={cls}
+                            >
+                              {cls}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Local Download / Loading Indicator Overlay */}
+                        {isCurrentDownloading && (
+                          <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-1.5 p-1 text-center">
+                            <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+                            <span className="font-mono text-[7px] text-primary uppercase font-bold tracking-wider">
+                              {language === 'pt' ? 'CARREGANDO' : 'LOADING'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-500 font-mono text-[10px]">
+                {language === 'pt' 
+                  ? 'Nenhum cenário de teste encontrado. Tente buscar por outro mob!' 
+                  : 'No test scenarios found. Try searching for another mob!'}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -1460,26 +1706,6 @@ export default function DetectorPanel({
               <div className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 bg-primary rounded-full animate-ping"></span>
                 <h2 className="font-display text-lg text-white font-bold uppercase tracking-wider">{language === 'pt' ? 'Visor Optico Principal' : 'Main Optical Viewport'}</h2>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-[10px] font-mono px-2 py-0.5 border uppercase ${
-                  serverMode === 'real' 
-                    ? 'text-primary bg-primary/5 border-primary/20' 
-                    : 'text-amber-500 bg-amber-500/5 border-amber-500/20'
-                }`}>
-                  {serverMode === 'real' ? t('server_real') : t('server_simulated')}
-                </span>
-                {serverMode === 'simulated' && (
-                  <button 
-                    onClick={() => {
-                      setServerMode('real');
-                      alert(language === 'pt' ? 'Conexão configurada para enviar requisições reais para: ' + API_BASE_URL : 'Connection configured to send real requests to: ' + API_BASE_URL);
-                    }}
-                    className="font-mono text-[10px] text-gray-500 hover:text-white underline cursor-pointer"
-                  >
-                    {language === 'pt' ? 'Ativar Real' : 'Activate Real'}
-                  </button>
-                )}
               </div>
             </div>
 
@@ -1538,86 +1764,281 @@ export default function DetectorPanel({
                 )}
               </div>
             ) : detectorMode === 'comparative' && comparativeData && !isScanning ? (
-              expandedMethod ? (
-                <div className="space-y-4">
-                  {/* Expanded View Top Control bar */}
-                  <div className="flex items-center justify-between bg-[#161616] p-3 border border-[#222222]">
-                    <div className="flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-primary animate-pulse" />
-                      <span className="font-display text-xs font-bold text-white uppercase tracking-wider">
-                        {language === 'pt' ? 'MÉTODO SELECIONADO:' : 'SELECTED METHOD:'}{' '}
-                        <span className="text-primary">
-                          {expandedMethod === 'sam' && 'YOLO + SAM (DEEP LEARNING)'}
-                          {expandedMethod === 'otsu' && 'OTSU (CLASSICAL)'}
-                          {expandedMethod === 'hsv' && 'HSV (COLOR FILTER)'}
-                          {expandedMethod === 'grabcut' && 'GRABCUT (FOREGROUND)'}
-                          {expandedMethod === 'watershed' && 'WATERSHED (CLASSICAL)'}
-                        </span>
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => setExpandedMethod(null)}
-                      className="px-3 py-1.5 mc-button text-[9px] font-mono font-bold uppercase tracking-wider"
-                    >
-                      {language === 'pt' ? 'Ver Todos os Métodos' : 'View All Methods'}
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full">
+                {/* Left side: Viewports (occupied 8/9 cols on large screens) */}
+                <div className="lg:col-span-8 xl:col-span-9 space-y-4">
+                  {expandedMethod ? (
+                    <div className="space-y-4">
+                      {/* Expanded View Top Control bar */}
+                      <div className="flex items-center justify-between bg-[#161616] p-3 border border-[#222222]">
+                        <div className="flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-primary animate-pulse" />
+                          <span className="font-display text-xs font-bold text-white uppercase tracking-wider">
+                            {language === 'pt' ? 'MÉTODO SELECIONADO:' : 'SELECTED METHOD:'}{' '}
+                            <span className="text-primary">
+                              {expandedMethod === 'sam' && 'YOLO + SAM (DEEP LEARNING)'}
+                              {expandedMethod === 'otsu' && 'OTSU (CLASSICAL)'}
+                              {expandedMethod === 'hsv' && 'HSV (COLOR FILTER)'}
+                              {expandedMethod === 'grabcut' && 'GRABCUT (FOREGROUND)'}
+                              {expandedMethod === 'watershed' && 'WATERSHED (CLASSICAL)'}
+                            </span>
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => setExpandedMethod(null)}
+                          className="px-3 py-1.5 mc-button text-[9px] font-mono font-bold uppercase tracking-wider cursor-pointer"
+                        >
+                          {language === 'pt' ? 'Ver Todos os Métodos' : 'View All Methods'}
+                        </button>
+                      </div>
 
-                  {/* Big Viewport */}
-                  <div className="w-full aspect-video border border-[#333333] shadow-lg relative overflow-hidden bg-black">
-                    {renderViewport(
-                      comparativeData[expandedMethod] || { width: 800, height: 450, detections: [] }, 
-                      expandedMethod, 
-                      expandedMethod === 'sam' ? 'YOLO + SAM (DEEP LEARNING)' :
-                      expandedMethod === 'otsu' ? 'OTSU (CLASSICAL)' :
-                      expandedMethod === 'hsv' ? 'HSV (COLOR FILTER)' :
-                      expandedMethod === 'grabcut' ? 'GRABCUT (FOREGROUND)' : 'WATERSHED (CLASSICAL)',
-                      true
+                      {/* Big Viewport */}
+                      <div className="w-full aspect-video border border-[#333333] shadow-lg relative overflow-hidden bg-black">
+                        {renderViewport(
+                          comparativeData[expandedMethod] || { width: 800, height: 450, detections: [] }, 
+                          expandedMethod, 
+                          expandedMethod === 'sam' ? 'YOLO + SAM (DEEP LEARNING)' :
+                          expandedMethod === 'otsu' ? 'OTSU (CLASSICAL)' :
+                          expandedMethod === 'hsv' ? 'HSV (COLOR FILTER)' :
+                          expandedMethod === 'grabcut' ? 'GRABCUT (FOREGROUND)' : 'WATERSHED (CLASSICAL)',
+                          true
+                        )}
+                      </div>
+
+                      {/* Thumbnail Selector / Navigation below */}
+                      <div className="space-y-2">
+                        <span className="font-mono text-[8.5px] text-gray-500 uppercase tracking-widest block">
+                          {language === 'pt' ? 'SELECIONE OUTRO MÉTODO PARA COMPARAR / EDITAR:' : 'SELECT ANOTHER METHOD TO COMPARE / EDIT:'}
+                        </span>
+                        <div className="grid grid-cols-5 gap-2">
+                          {(['sam', 'otsu', 'hsv', 'grabcut', 'watershed'] as const).map((methodKey) => {
+                            const isCurrent = expandedMethod === methodKey;
+                            const label = methodKey === 'sam' ? 'SAM' :
+                                          methodKey === 'otsu' ? 'OTSU' :
+                                          methodKey === 'hsv' ? 'HSV' :
+                                          methodKey === 'grabcut' ? 'GRABCUT' : 'WATERSHED';
+                            const color = methodKey === 'sam' ? 'border-[#EEC30C]' :
+                                          methodKey === 'otsu' ? 'border-sky-500' :
+                                          methodKey === 'hsv' ? 'border-emerald-500' :
+                                          methodKey === 'grabcut' ? 'border-rose-500' : 'border-amber-500';
+                            return (
+                              <button
+                                key={methodKey}
+                                onClick={() => setExpandedMethod(methodKey)}
+                                className={`p-2 font-mono text-[9px] font-bold uppercase border transition-all cursor-pointer ${
+                                  isCurrent 
+                                    ? `${color} bg-[#1a1a1a] text-white shadow-[0_0_8px_rgba(238,195,12,0.15)]` 
+                                    : 'border-[#222222] bg-[#111111] text-gray-400 hover:border-[#444444] hover:text-white'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {renderViewport(comparativeData.sam || { width: 800, height: 450, detections: [] }, 'sam', 'YOLO + SAM (DEEP LEARNING)', true)}
+                      {renderViewport(comparativeData.otsu || { width: 800, height: 450, detections: [] }, 'otsu', 'OTSU (CLASSICAL)', false)}
+                      {renderViewport(comparativeData.hsv || { width: 800, height: 450, detections: [] }, 'hsv', 'HSV (COLOR FILTER)', false)}
+                      {renderViewport(comparativeData.grabcut || { width: 800, height: 450, detections: [] }, 'grabcut', 'GRABCUT (FOREGROUND)', false)}
+                      {renderViewport(comparativeData.watershed || { width: 800, height: 450, detections: [] }, 'watershed', 'WATERSHED (CLASSICAL)', false)}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right side: Parameters box (matches height with viewport on lg/xl) */}
+                <div className="lg:col-span-4 xl:col-span-3">
+                  <div className="bg-[#111111] p-5 border border-[#333333] relative h-full flex flex-col justify-between">
+                    <div className="corner-bracket-tl"></div>
+                    <div className="corner-bracket-tr"></div>
+                    <div className="corner-bracket-bl"></div>
+                    <div className="corner-bracket-br"></div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-[#222222] pb-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <Layers className="w-3.5 h-3.5 text-primary animate-pulse" />
+                          <span className="font-display text-[9px] text-primary font-bold uppercase tracking-wider">
+                            {expandedMethod 
+                              ? `${language === 'pt' ? 'PARÂMETROS:' : 'PARAMETERS:'} ${expandedMethod.toUpperCase()}`
+                              : (language === 'pt' ? 'PARAMETROS DA API CLASSICA' : 'CLASSIC API PARAMETERS')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {onViewMethodDetails && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onViewMethodDetails(expandedMethod || 'sam');
+                              }}
+                              className="font-mono text-[8px] bg-primary/20 hover:bg-primary border border-primary/30 text-primary hover:text-black px-2 py-0.5 uppercase flex items-center gap-1 cursor-pointer transition-all font-bold"
+                            >
+                              <Info className="w-2.5 h-2.5" />
+                              <span>{language === 'pt' ? 'Como Funciona?' : 'How It Works?'}</span>
+                            </button>
+                          )}
+                          {expandedMethod && (
+                            <span className="font-mono text-[7px] bg-[#222222] text-gray-400 px-1.5 py-0.5 border border-[#333333]">
+                              {language === 'pt' ? 'FOCADO' : 'FOCUSED'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {expandedMethod === 'sam' ? (
+                        <div className="p-3 bg-[#111111] border border-primary/20 text-[8.5px] font-mono leading-relaxed text-gray-400 space-y-2">
+                          <p className="text-primary font-bold">YOLOv8 + Segment Anything (SAM)</p>
+                          <p>
+                            {language === 'pt'
+                              ? 'Este método utiliza Redes Neurais Convolucionais profundas (Deep Learning) para segmentação automática de altíssima fidelidade. Não requer parametrização clássica de visão computacional.'
+                              : 'This method leverages Deep Convolutional Neural Networks (Deep Learning) for automatic ultra-high-fidelity segmentation. No classic computer vision parameter tuning required.'}
+                          </p>
+                          <p className="text-gray-500 text-[8px]">
+                            {language === 'pt'
+                              ? 'Ajuste o Filtro de Confidência do Sensor abaixo para filtrar os mobs identificados.'
+                              : 'Adjust the Sensor Confidence Filter below to filter identified mobs.'}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {(!expandedMethod || expandedMethod === 'otsu' || expandedMethod === 'hsv' || expandedMethod === 'grabcut' || expandedMethod === 'watershed') && (
+                            <div className="space-y-4">
+                              {/* 1. margin_ratio */}
+                              <div className="space-y-1">
+                                <div className="flex items-center justify-between text-[9px]">
+                                  <span className="font-mono text-gray-300 font-bold uppercase tracking-wide">
+                                    margin_ratio <span className="text-[7.5px] text-gray-500 font-normal">({language === 'pt' ? 'todos' : 'all'})</span>
+                                  </span>
+                                  <span className="font-mono text-primary font-bold">{marginRatio.toFixed(2)}</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0.0" 
+                                  max="1.0" 
+                                  step="0.05"
+                                  value={marginRatio} 
+                                  onChange={(e) => setMarginRatio(parseFloat(e.target.value))}
+                                  className="w-full accent-primary bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
+                                />
+                                <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
+                                  {language === 'pt' ? 'Margem extra para o recorte do enquadramento' : 'Extra framing margin scale'}
+                                </span>
+                              </div>
+
+                              {/* 2. poly_epsilon */}
+                              <div className="space-y-1 pt-2 border-t border-[#222222]/20">
+                                <div className="flex items-center justify-between text-[9px]">
+                                  <span className="font-mono text-gray-300 font-bold uppercase tracking-wide">
+                                    poly_epsilon <span className="text-[7.5px] text-gray-500 font-normal">({language === 'pt' ? 'todos' : 'all'})</span>
+                                  </span>
+                                  <span className="font-mono text-primary font-bold">{polyEpsilon.toFixed(1)}</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0.1" 
+                                  max="10.0" 
+                                  step="0.1"
+                                  value={polyEpsilon} 
+                                  onChange={(e) => setPolyEpsilon(parseFloat(e.target.value))}
+                                  className="w-full accent-primary bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
+                                />
+                                <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
+                                  {language === 'pt' ? 'Simplificacao de vertices (maior = poligono reto)' : 'Simplifies geometry (higher = straighter)'}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 3. grabcut_iterations */}
+                          {(!expandedMethod || expandedMethod === 'grabcut') && (
+                            <div className="space-y-1 border-t border-[#222222]/40 pt-2">
+                              <div className="flex items-center justify-between text-[9px]">
+                                <span className="font-mono text-[#F43F5E] font-bold uppercase tracking-wide">
+                                  grabcut_iterations <span className="text-[7.5px] text-gray-500 font-normal">({language === 'pt' ? 'só GrabCut' : 'GrabCut only'})</span>
+                                </span>
+                                <span className="font-mono text-[#F43F5E] font-bold">{grabcutIterations}</span>
+                              </div>
+                              <input 
+                                type="range" 
+                                min="1" 
+                                max="20" 
+                                step="1"
+                                value={grabcutIterations} 
+                                onChange={(e) => setGrabcutIterations(parseInt(e.target.value))}
+                                className="w-full accent-[#F43F5E] bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
+                              />
+                              <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
+                                {language === 'pt' ? 'Iteracoes do otimizador de foreground' : 'Foreground segmenter processing cycles'}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* 4. hsv_threshold */}
+                          {(!expandedMethod || expandedMethod === 'hsv') && (
+                            <div className="space-y-1 border-t border-[#222222]/40 pt-2">
+                              <div className="flex items-center justify-between text-[9px]">
+                                <span className="font-mono text-secondary font-bold uppercase tracking-wide">
+                                  hsv_threshold <span className="text-[7.5px] text-gray-500 font-normal">({language === 'pt' ? 'só HSV' : 'HSV only'})</span>
+                                </span>
+                                <span className="font-mono text-secondary font-bold">{hsvThreshold.toFixed(1)}</span>
+                              </div>
+                              <input 
+                                type="range" 
+                                min="0.1" 
+                                max="10.0" 
+                                step="0.1"
+                                value={hsvThreshold} 
+                                onChange={(e) => setHsvThreshold(parseFloat(e.target.value))}
+                                className="w-full accent-secondary bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
+                              />
+                              <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
+                                {language === 'pt' ? 'Filtro de saturacao/matiz (menor = sensivel)' : 'Color filter sensitivity (lower = sensitive)'}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* 5. watershed_fg_ratio */}
+                          {(!expandedMethod || expandedMethod === 'watershed') && (
+                            <div className="space-y-1 border-t border-[#222222]/40 pt-2">
+                              <div className="flex items-center justify-between text-[9px]">
+                                <span className="font-mono text-amber-500 font-bold uppercase tracking-wide">
+                                  watershed_fg_ratio <span className="text-[7.5px] text-gray-500 font-normal">({language === 'pt' ? 'só Watershed' : 'Watershed only'})</span>
+                                </span>
+                                <span className="font-mono text-amber-500 font-bold">{watershedFgRatio.toFixed(2)}</span>
+                              </div>
+                              <input 
+                                type="range" 
+                                min="0.01" 
+                                max="0.99" 
+                                step="0.01"
+                                value={watershedFgRatio} 
+                                onChange={(e) => setWatershedFgRatio(parseFloat(e.target.value))}
+                                className="w-full accent-amber-500 bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
+                              />
+                              <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
+                                {language === 'pt' ? 'Fator de separacao de pixels watershed' : 'Watershed pixel separation constraint'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {!expandedMethod && (
+                      <div className="text-center pt-2 mt-4 border-t border-[#222222]/40">
+                        <span className="font-mono text-[7.5px] text-gray-500 italic block leading-normal">
+                          {language === 'pt' 
+                            ? 'DICA: Clique em qualquer imagem de método para ampliá-la e focar apenas nos seus parâmetros!'
+                            : 'TIP: Click any method viewport to amplify it and focus on its specific parameters!'}
+                        </span>
+                      </div>
                     )}
                   </div>
-
-                  {/* Thumbnail Selector / Navigation below */}
-                  <div className="space-y-2">
-                    <span className="font-mono text-[8.5px] text-gray-500 uppercase tracking-widest block">
-                      {language === 'pt' ? 'SELECIONE OUTRO MÉTODO PARA COMPARAR / EDITAR:' : 'SELECT ANOTHER METHOD TO COMPARE / EDIT:'}
-                    </span>
-                    <div className="grid grid-cols-5 gap-2">
-                      {(['sam', 'otsu', 'hsv', 'grabcut', 'watershed'] as const).map((methodKey) => {
-                        const isCurrent = expandedMethod === methodKey;
-                        const label = methodKey === 'sam' ? 'SAM' :
-                                      methodKey === 'otsu' ? 'OTSU' :
-                                      methodKey === 'hsv' ? 'HSV' :
-                                      methodKey === 'grabcut' ? 'GRABCUT' : 'WATERSHED';
-                        const color = methodKey === 'sam' ? 'border-[#EEC30C]' :
-                                      methodKey === 'otsu' ? 'border-sky-500' :
-                                      methodKey === 'hsv' ? 'border-emerald-500' :
-                                      methodKey === 'grabcut' ? 'border-rose-500' : 'border-amber-500';
-                        return (
-                          <button
-                            key={methodKey}
-                            onClick={() => setExpandedMethod(methodKey)}
-                            className={`p-2 font-mono text-[9px] font-bold uppercase border transition-all ${
-                              isCurrent 
-                                ? `${color} bg-[#1a1a1a] text-white shadow-[0_0_8px_rgba(238,195,12,0.15)]` 
-                                : 'border-[#222222] bg-[#111111] text-gray-400 hover:border-[#444444] hover:text-white'
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {renderViewport(comparativeData.sam || { width: 800, height: 450, detections: [] }, 'sam', 'YOLO + SAM (DEEP LEARNING)', true)}
-                  {renderViewport(comparativeData.otsu || { width: 800, height: 450, detections: [] }, 'otsu', 'OTSU (CLASSICAL)', false)}
-                  {renderViewport(comparativeData.hsv || { width: 800, height: 450, detections: [] }, 'hsv', 'HSV (COLOR FILTER)', false)}
-                  {renderViewport(comparativeData.grabcut || { width: 800, height: 450, detections: [] }, 'grabcut', 'GRABCUT (FOREGROUND)', false)}
-                  {renderViewport(comparativeData.watershed || { width: 800, height: 450, detections: [] }, 'watershed', 'WATERSHED (CLASSICAL)', false)}
-                </div>
-              )
+              </div>
             ) : (
               /* SVG Interactive Canvas Container */
               <div 
@@ -2104,173 +2525,7 @@ export default function DetectorPanel({
               </div>
 
               {/* Classical Parameters Sliders (Minecraft Theme) */}
-              {detectorMode === 'comparative' && (
-                <div className="bg-[#161616] p-4 border border-[#222222] space-y-4 animate-fade-in">
-                  <div className="flex items-center justify-between border-b border-[#222222] pb-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      <Layers className="w-3.5 h-3.5 text-primary animate-pulse" />
-                      <span className="font-display text-[9px] text-primary font-bold uppercase tracking-wider">
-                        {expandedMethod 
-                          ? `${language === 'pt' ? 'PARÂMETROS:' : 'PARAMETERS:'} ${expandedMethod.toUpperCase()}`
-                          : (language === 'pt' ? 'PARAMETROS DA API CLASSICA' : 'CLASSIC API PARAMETERS')}
-                      </span>
-                    </div>
-                    {expandedMethod && (
-                      <span className="font-mono text-[7px] bg-[#222222] text-gray-400 px-1.5 py-0.5 border border-[#333333]">
-                        {language === 'pt' ? 'FOCADO' : 'FOCUSED'}
-                      </span>
-                    )}
-                  </div>
-
-                  {expandedMethod === 'sam' ? (
-                    <div className="p-3 bg-[#111111] border border-primary/20 text-[8.5px] font-mono leading-relaxed text-gray-400 space-y-2">
-                      <p className="text-primary font-bold">YOLOv8 + Segment Anything (SAM)</p>
-                      <p>
-                        {language === 'pt'
-                          ? 'Este método utiliza Redes Neurais Convolucionais profundas (Deep Learning) para segmentação automática de altíssima fidelidade. Não requer parametrização clássica de visão computacional.'
-                          : 'This method leverages Deep Convolutional Neural Networks (Deep Learning) for automatic ultra-high-fidelity segmentation. No classic computer vision parameter tuning required.'}
-                      </p>
-                      <p className="text-gray-500 text-[8px]">
-                        {language === 'pt'
-                          ? 'Ajuste o Filtro de Confidência do Sensor acima para filtrar os mobs identificados.'
-                          : 'Adjust the Sensor Confidence Filter above to filter identified mobs.'}
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      {(!expandedMethod || expandedMethod === 'otsu' || expandedMethod === 'hsv' || expandedMethod === 'grabcut' || expandedMethod === 'watershed') && (
-                        <>
-                          {/* 1. margin_ratio */}
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between text-[9px]">
-                              <span className="font-mono text-gray-300 font-bold uppercase tracking-wide">
-                                margin_ratio <span className="text-[7.5px] text-gray-500 font-normal">({language === 'pt' ? 'todos' : 'all'})</span>
-                              </span>
-                              <span className="font-mono text-primary font-bold">{marginRatio.toFixed(2)}</span>
-                            </div>
-                            <input 
-                              type="range" 
-                              min="0.0" 
-                              max="1.0" 
-                              step="0.05"
-                              value={marginRatio} 
-                              onChange={(e) => setMarginRatio(parseFloat(e.target.value))}
-                              className="w-full accent-primary bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
-                            />
-                            <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
-                              {language === 'pt' ? 'Margem extra para o recorte do enquadramento' : 'Extra framing margin scale'}
-                            </span>
-                          </div>
-
-                          {/* 2. poly_epsilon */}
-                          <div className="space-y-1 pt-2 border-t border-[#222222]/20">
-                            <div className="flex items-center justify-between text-[9px]">
-                              <span className="font-mono text-gray-300 font-bold uppercase tracking-wide">
-                                poly_epsilon <span className="text-[7.5px] text-gray-500 font-normal">({language === 'pt' ? 'todos' : 'all'})</span>
-                              </span>
-                              <span className="font-mono text-primary font-bold">{polyEpsilon.toFixed(1)}</span>
-                            </div>
-                            <input 
-                              type="range" 
-                              min="0.1" 
-                              max="10.0" 
-                              step="0.1"
-                              value={polyEpsilon} 
-                              onChange={(e) => setPolyEpsilon(parseFloat(e.target.value))}
-                              className="w-full accent-primary bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
-                            />
-                            <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
-                              {language === 'pt' ? 'Simplificacao de vertices (maior = poligono reto)' : 'Simplifies geometry (higher = straighter)'}
-                            </span>
-                          </div>
-                        </>
-                      )}
-
-                      {/* 3. grabcut_iterations */}
-                      {(!expandedMethod || expandedMethod === 'grabcut') && (
-                        <div className="space-y-1 border-t border-[#222222]/40 pt-2">
-                          <div className="flex items-center justify-between text-[9px]">
-                            <span className="font-mono text-[#F43F5E] font-bold uppercase tracking-wide">
-                              grabcut_iterations <span className="text-[7.5px] text-gray-500 font-normal">({language === 'pt' ? 'só GrabCut' : 'GrabCut only'})</span>
-                            </span>
-                            <span className="font-mono text-[#F43F5E] font-bold">{grabcutIterations}</span>
-                          </div>
-                          <input 
-                            type="range" 
-                            min="1" 
-                            max="20" 
-                            step="1"
-                            value={grabcutIterations} 
-                            onChange={(e) => setGrabcutIterations(parseInt(e.target.value))}
-                            className="w-full accent-[#F43F5E] bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
-                          />
-                          <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
-                            {language === 'pt' ? 'Iteracoes do otimizador de foreground' : 'Foreground segmenter processing cycles'}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* 4. hsv_threshold */}
-                      {(!expandedMethod || expandedMethod === 'hsv') && (
-                        <div className="space-y-1 border-t border-[#222222]/40 pt-2">
-                          <div className="flex items-center justify-between text-[9px]">
-                            <span className="font-mono text-secondary font-bold uppercase tracking-wide">
-                              hsv_threshold <span className="text-[7.5px] text-gray-500 font-normal">({language === 'pt' ? 'só HSV' : 'HSV only'})</span>
-                            </span>
-                            <span className="font-mono text-secondary font-bold">{hsvThreshold.toFixed(1)}</span>
-                          </div>
-                          <input 
-                            type="range" 
-                            min="0.1" 
-                            max="10.0" 
-                            step="0.1"
-                            value={hsvThreshold} 
-                            onChange={(e) => setHsvThreshold(parseFloat(e.target.value))}
-                            className="w-full accent-secondary bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
-                          />
-                          <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
-                            {language === 'pt' ? 'Filtro de saturacao/matiz (menor = sensivel)' : 'Color filter sensitivity (lower = sensitive)'}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* 5. watershed_fg_ratio */}
-                      {(!expandedMethod || expandedMethod === 'watershed') && (
-                        <div className="space-y-1 border-t border-[#222222]/40 pt-2">
-                          <div className="flex items-center justify-between text-[9px]">
-                            <span className="font-mono text-amber-500 font-bold uppercase tracking-wide">
-                              watershed_fg_ratio <span className="text-[7.5px] text-gray-500 font-normal">({language === 'pt' ? 'só Watershed' : 'Watershed only'})</span>
-                            </span>
-                            <span className="font-mono text-amber-500 font-bold">{watershedFgRatio.toFixed(2)}</span>
-                          </div>
-                          <input 
-                            type="range" 
-                            min="0.01" 
-                            max="0.99" 
-                            step="0.01"
-                            value={watershedFgRatio} 
-                            onChange={(e) => setWatershedFgRatio(parseFloat(e.target.value))}
-                            className="w-full accent-amber-500 bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
-                          />
-                          <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
-                            {language === 'pt' ? 'Fator de separacao de pixels watershed' : 'Watershed pixel separation constraint'}
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {!expandedMethod && (
-                    <div className="text-center pt-1 border-t border-[#222222]/40">
-                      <span className="font-mono text-[7.5px] text-gray-500 italic block leading-normal">
-                        {language === 'pt' 
-                          ? 'DICA: Clique em qualquer imagem de método à esquerda para ampliá-la e focar apenas nos seus parâmetros!'
-                          : 'TIP: Click any method viewport on the left to amplify it and focus on its specific parameters!'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* REMOVED FROM BOTTOM - MOVED SIDE-BY-SIDE WITH COMPARATIVE VIEWPORTS ABOVE */}
             </div>
           </div>
 
