@@ -32,9 +32,8 @@ function AppContent() {
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
       try {
-        const url = `${(import.meta as any).env?.VITE_API_BASE_URL || 'https://stimulate-excusably-subsystem.ngrok-free.dev'}/ping`;
+        const url = `${(import.meta as any).env?.VITE_API_BASE_URL || 'https://pedroazara-yolocraft-api.hf.space'}/ping`;
         const response = await fetch(url, {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
           signal: controller.signal,
         });
         clearTimeout(timeoutId);

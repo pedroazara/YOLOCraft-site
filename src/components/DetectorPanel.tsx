@@ -277,7 +277,7 @@ export default function DetectorPanel({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const progressIntervalRef = useRef<any>(null);
 
-  const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'https://stimulate-excusably-subsystem.ngrok-free.dev';
+  const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'https://pedroazara-yolocraft-api.hf.space';
 
   // State for dataset test image search
   const [sampleClasses, setSampleClasses] = useState<string[]>([]);
@@ -289,9 +289,7 @@ export default function DetectorPanel({
 
   const fetchSampleClasses = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/samples/classes`, {
-        headers: { "ngrok-skip-browser-warning": "true" },
-      });
+      const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/samples/classes`);
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.classes)) {
@@ -310,9 +308,7 @@ export default function DetectorPanel({
       if (mobName && mobName.trim()) {
         url += `&mob=${encodeURIComponent(mobName.trim())}`;
       }
-      const res = await fetch(url, {
-        headers: { "ngrok-skip-browser-warning": "true" },
-      });
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.samples)) {
@@ -331,9 +327,7 @@ export default function DetectorPanel({
     setIsDownloadingSample(sample.url);
     try {
       const fullUrl = `${API_BASE_URL.replace(/\/$/, '')}${sample.url}`;
-      const res = await fetch(fullUrl, {
-        headers: { "ngrok-skip-browser-warning": "true" },
-      });
+      const res = await fetch(fullUrl);
       if (!res.ok) {
         throw new Error(`Failed to fetch image: ${res.statusText}`);
       }
@@ -660,7 +654,6 @@ export default function DetectorPanel({
         
         const res = await fetch(url, {
           method: 'POST',
-          headers: { 'ngrok-skip-browser-warning': 'true' },
           body: form
         });
         
@@ -785,9 +778,6 @@ export default function DetectorPanel({
             
             const res = await fetch(url, {
               method: 'POST',
-              headers: {
-                'ngrok-skip-browser-warning': 'true'
-              },
               body: form
             });
             
@@ -855,9 +845,6 @@ export default function DetectorPanel({
             
             const response = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/predict`, {
               method: 'POST',
-              headers: {
-                'ngrok-skip-browser-warning': 'true'
-              },
               body: form
             });
 
