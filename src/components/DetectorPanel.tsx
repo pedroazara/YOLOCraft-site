@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ScanResult, ApiPredictResponse, ApiDetection } from '../types';
-import { UploadCloud, Radar, Shield, Eye, Download, Info, Check, RefreshCw, Layers, AlertTriangle, Search, Sparkles, Camera } from 'lucide-react';
+import { UploadCloud, Radar, Shield, Eye, Download, Info, Check, RefreshCw, Layers, AlertTriangle, Search, Sparkles, Camera, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -297,7 +297,7 @@ export default function DetectorPanel({
         }
       }
     } catch (err) {
-      console.error('Failed to fetch sample classes:', err);
+      console.warn('API is currently sleeping or offline (failed to fetch sample classes).', err);
     }
   };
 
@@ -316,7 +316,7 @@ export default function DetectorPanel({
         }
       }
     } catch (err) {
-      console.error('Failed to fetch samples:', err);
+      console.warn('API is currently sleeping or offline (failed to fetch samples).', err);
     } finally {
       setIsFetchingSamples(false);
     }
@@ -1833,16 +1833,29 @@ export default function DetectorPanel({
                   </div>
                 )}
                 {apiStatus === 'offline' ? (
-                  <div className="text-center p-6 space-y-3">
+                  <div className="text-center p-6 space-y-4">
                     <div className="w-12 h-12 bg-red-950/60 border-2 border-red-500 flex items-center justify-center mx-auto shadow-[4px_4px_0px_#000000]">
                       <AlertTriangle className="w-6 h-6 text-red-400" />
                     </div>
-                    <h3 className="font-display text-sm font-bold text-red-400 uppercase tracking-wider">{language === 'pt' ? 'API FORA DO AR' : 'API OFFLINE'}</h3>
-                    <p className="font-sans text-xs text-gray-400 max-w-sm leading-relaxed">
-                      {language === 'pt' 
-                        ? 'O detector optico esta indisponivel no momento. Os uploads foram temporariamente desativados.'
-                        : 'The optical detector is currently unavailable. Uploads have been temporarily disabled.'}
-                    </p>
+                    <div>
+                      <h3 className="font-display text-sm font-bold text-red-400 uppercase tracking-wider mb-1">{language === 'pt' ? 'API DORMINDO / FORA DO AR' : 'API SLEEPING / OFFLINE'}</h3>
+                      <p className="font-sans text-xs text-gray-400 max-w-sm leading-relaxed mx-auto">
+                        {language === 'pt' 
+                          ? 'O detector óptico está indisponível. Como a API está hospedada no Hugging Face Spaces, ela pode ter entrado em repouso por inatividade.'
+                          : 'The optical detector is currently unavailable. Since the API is hosted on Hugging Face Spaces, it might have gone to sleep due to inactivity.'}
+                      </p>
+                    </div>
+                    <div className="pt-2 z-30 relative flex justify-center">
+                      <a 
+                        href="https://huggingface.co/spaces/pedroazara/yolocraft-api"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 font-minecraft text-xs text-[#ffffff] bg-[#3c8527] hover:bg-[#4ea634] active:bg-[#2e681d] px-4 py-2 border-2 border-t-[#55b635] border-l-[#55b635] border-r-[#113607] border-b-[#113607] shadow-[3px_3px_0px_#000000] uppercase tracking-wider transition-all cursor-pointer select-none"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-white" />
+                        {language === 'pt' ? 'Acordar API no Hugging Face' : 'Wake up API on Hugging Face'}
+                      </a>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center p-6 space-y-3">
