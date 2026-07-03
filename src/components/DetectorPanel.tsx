@@ -254,6 +254,12 @@ export default function DetectorPanel({
     watershed: ApiPredictResponse | null;
   } | null>(null);
 
+  // Loading states for each individual classical engine
+  const [isOtsuLoading, setIsOtsuLoading] = useState(false);
+  const [isHsvLoading, setIsHsvLoading] = useState(false);
+  const [isGrabcutLoading, setIsGrabcutLoading] = useState(false);
+  const [isWatershedLoading, setIsWatershedLoading] = useState(false);
+
   // Classical prediction parameters states
   const [marginRatio, setMarginRatio] = useState(0.25);
   const [grabcutIterations, setGrabcutIterations] = useState(5);
@@ -636,6 +642,11 @@ export default function DetectorPanel({
   const reRunClassicPrediction = async () => {
     if (!currentFile || serverMode !== 'real') return;
     
+    setIsOtsuLoading(true);
+    setIsHsvLoading(true);
+    setIsGrabcutLoading(true);
+    setIsWatershedLoading(true);
+    
     try {
       const runEngine = async (method: 'otsu' | 'hsv' | 'grabcut' | 'watershed'): Promise<ApiPredictResponse> => {
         const form = new FormData();
@@ -664,22 +675,34 @@ export default function DetectorPanel({
       };
 
       const [otsuRes, hsvRes, grabcutRes, watershedRes] = await Promise.all([
-        runEngine('otsu').catch(err => {
-          console.error('OTSU Engine error:', err);
-          return comparativeData?.otsu || { width: 800, height: 450, detections: [] };
-        }),
-        runEngine('hsv').catch(err => {
-          console.error('HSV Engine error:', err);
-          return comparativeData?.hsv || { width: 800, height: 450, detections: [] };
-        }),
-        runEngine('grabcut').catch(err => {
-          console.error('GrabCut Engine error:', err);
-          return comparativeData?.grabcut || { width: 800, height: 450, detections: [] };
-        }),
-        runEngine('watershed').catch(err => {
-          console.error('Watershed Engine error:', err);
-          return comparativeData?.watershed || { width: 800, height: 450, detections: [] };
-        })
+        runEngine('otsu')
+          .then(res => { setIsOtsuLoading(false); return res; })
+          .catch(err => {
+            console.error('OTSU Engine error:', err);
+            setIsOtsuLoading(false);
+            return comparativeData?.otsu || { width: 800, height: 450, detections: [] };
+          }),
+        runEngine('hsv')
+          .then(res => { setIsHsvLoading(false); return res; })
+          .catch(err => {
+            console.error('HSV Engine error:', err);
+            setIsHsvLoading(false);
+            return comparativeData?.hsv || { width: 800, height: 450, detections: [] };
+          }),
+        runEngine('grabcut')
+          .then(res => { setIsGrabcutLoading(false); return res; })
+          .catch(err => {
+            console.error('GrabCut Engine error:', err);
+            setIsGrabcutLoading(false);
+            return comparativeData?.grabcut || { width: 800, height: 450, detections: [] };
+          }),
+        runEngine('watershed')
+          .then(res => { setIsWatershedLoading(false); return res; })
+          .catch(err => {
+            console.error('Watershed Engine error:', err);
+            setIsWatershedLoading(false);
+            return comparativeData?.watershed || { width: 800, height: 450, detections: [] };
+          })
       ]);
 
       setComparativeData(prev => ({
@@ -691,6 +714,10 @@ export default function DetectorPanel({
       }));
     } catch (error) {
       console.error('Error re-running classic predictions:', error);
+      setIsOtsuLoading(false);
+      setIsHsvLoading(false);
+      setIsGrabcutLoading(false);
+      setIsWatershedLoading(false);
     }
   };
 
@@ -1437,11 +1464,14 @@ export default function DetectorPanel({
 
                   {/* 1. Draw Segmentation Contour */}
                   {hasPolygon && (viewMode === 'overlay' || viewMode === 'highlight' || viewMode === 'threshold') && (
-                    <polygon
+                    <motion.polygon
+                      key={`${i}-${d.polygon.length}-${d.polygon[0]?.[0] || 0}-${viewMode}`}
                       points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')}
                       fill={viewMode === 'threshold' ? '#ffffff' : (viewMode === 'highlight' ? 'none' : `${color}4D`)}
                       stroke={viewMode === 'threshold' ? '#ffffff' : color}
-                      strokeWidth={isZoomed ? "4" : "2.5"}
+                      initial={{ opacity: 0.2, strokeWidth: isZoomed ? 10 : 7 }}
+                      animate={{ opacity: 1, strokeWidth: isZoomed ? 4 : 2.5 }}
+                      transition={{ duration: 0.45, ease: "easeOut" }}
                       className="transition-all duration-200 group-hover/det:stroke-[3px] animate-target-blink"
                     />
                   )}
@@ -2031,6 +2061,21 @@ export default function DetectorPanel({
                                   onChange={(e) => setMarginRatio(parseFloat(e.target.value))}
                                   className="mc-range mc-range-primary"
                                 />
+                                {(isOtsuLoading || isHsvLoading || isGrabcutLoading || isWatershedLoading) && (
+                                  <div className="space-y-1 my-1">
+                                    <div className="flex items-center justify-between text-[6.5px] font-mono text-primary animate-pulse">
+                                      <span>{language === 'pt' ? 'ATUALIZANDO MARGEM...' : 'UPDATING MARGIN...'}</span>
+                                    </div>
+                                    <div className="w-full bg-[#111111] h-[3px] border border-[#222222] p-[1px] overflow-hidden relative">
+                                      <motion.div 
+                                        className="h-full bg-primary"
+                                        initial={{ width: "20%", x: "-100%" }}
+                                        animate={{ x: ["0%", "500%"] }}
+                                        transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
                                 <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
                                   {language === 'pt' ? 'Margem extra para o recorte do enquadramento' : 'Extra framing margin scale'}
                                 </span>
@@ -2053,6 +2098,21 @@ export default function DetectorPanel({
                                   onChange={(e) => setPolyEpsilon(parseFloat(e.target.value))}
                                   className="mc-range mc-range-primary"
                                 />
+                                {(isOtsuLoading || isHsvLoading || isGrabcutLoading || isWatershedLoading) && (
+                                  <div className="space-y-1 my-1">
+                                    <div className="flex items-center justify-between text-[6.5px] font-mono text-primary animate-pulse">
+                                      <span>{language === 'pt' ? 'POLIGONALIZANDO...' : 'POLYGONALIZING...'}</span>
+                                    </div>
+                                    <div className="w-full bg-[#111111] h-[3px] border border-[#222222] p-[1px] overflow-hidden relative">
+                                      <motion.div 
+                                        className="h-full bg-primary"
+                                        initial={{ width: "20%", x: "-100%" }}
+                                        animate={{ x: ["0%", "500%"] }}
+                                        transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
                                 <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
                                   {language === 'pt' ? 'Simplificacao de vertices (maior = poligono reto)' : 'Simplifies geometry (higher = straighter)'}
                                 </span>
@@ -2078,6 +2138,21 @@ export default function DetectorPanel({
                                 onChange={(e) => setGrabcutIterations(parseInt(e.target.value))}
                                 className="mc-range mc-range-red"
                               />
+                              {isGrabcutLoading && (
+                                <div className="space-y-1 my-1">
+                                  <div className="flex items-center justify-between text-[6.5px] font-mono text-[#F43F5E] animate-pulse">
+                                    <span>{language === 'pt' ? 'ITERANDO GRABCUT...' : 'ITERATING GRABCUT...'}</span>
+                                  </div>
+                                  <div className="w-full bg-[#111111] h-[3px] border border-[#222222] p-[1px] overflow-hidden relative">
+                                    <motion.div 
+                                      className="h-full bg-[#F43F5E]"
+                                      initial={{ width: "20%", x: "-100%" }}
+                                      animate={{ x: ["0%", "500%"] }}
+                                      transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
                               <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
                                 {language === 'pt' ? 'Iteracoes do otimizador de foreground' : 'Foreground segmenter processing cycles'}
                               </span>
@@ -2102,6 +2177,21 @@ export default function DetectorPanel({
                                 onChange={(e) => setHsvThreshold(parseFloat(e.target.value))}
                                 className="mc-range mc-range-secondary"
                               />
+                              {isHsvLoading && (
+                                <div className="space-y-1 my-1">
+                                  <div className="flex items-center justify-between text-[6.5px] font-mono text-secondary animate-pulse">
+                                    <span>{language === 'pt' ? 'FILTRANDO CORES HSV...' : 'FILTERING HSV COLORS...'}</span>
+                                  </div>
+                                  <div className="w-full bg-[#111111] h-[3px] border border-[#222222] p-[1px] overflow-hidden relative">
+                                    <motion.div 
+                                      className="h-full bg-secondary"
+                                      initial={{ width: "20%", x: "-100%" }}
+                                      animate={{ x: ["0%", "500%"] }}
+                                      transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
                               <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
                                 {language === 'pt' ? 'Filtro de saturacao/matiz (menor = sensivel)' : 'Color filter sensitivity (lower = sensitive)'}
                               </span>
@@ -2126,6 +2216,21 @@ export default function DetectorPanel({
                                 onChange={(e) => setWatershedFgRatio(parseFloat(e.target.value))}
                                 className="mc-range mc-range-amber"
                               />
+                              {isWatershedLoading && (
+                                <div className="space-y-1 my-1">
+                                  <div className="flex items-center justify-between text-[6.5px] font-mono text-amber-500 animate-pulse">
+                                    <span>{language === 'pt' ? 'INUNDANDO BACIAS...' : 'FLOODING BASINS...'}</span>
+                                  </div>
+                                  <div className="w-full bg-[#111111] h-[3px] border border-[#222222] p-[1px] overflow-hidden relative">
+                                    <motion.div 
+                                      className="h-full bg-amber-500"
+                                      initial={{ width: "20%", x: "-100%" }}
+                                      animate={{ x: ["0%", "500%"] }}
+                                      transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
                               <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
                                 {language === 'pt' ? 'Fator de separacao de pixels watershed' : 'Watershed pixel separation constraint'}
                               </span>
@@ -2341,11 +2446,14 @@ export default function DetectorPanel({
 
                               {/* 1. Draw Segmentation Contour */}
                               {hasPolygon && (viewMode === 'overlay' || viewMode === 'highlight' || viewMode === 'threshold') && (
-                                <polygon
+                                <motion.polygon
+                                  key={`${i}-${d.polygon.length}-${d.polygon[0]?.[0] || 0}-${viewMode}`}
                                   points={d.polygon.map(p => `${p[0]},${p[1]}`).join(' ')}
                                   fill={viewMode === 'threshold' ? '#ffffff' : (viewMode === 'highlight' ? 'none' : `${color}4D`)}
                                   stroke={viewMode === 'threshold' ? '#ffffff' : color}
-                                  strokeWidth={isZoomed ? "4" : "3"}
+                                  initial={{ opacity: 0.2, strokeWidth: isZoomed ? 12 : 8 }}
+                                  animate={{ opacity: 1, strokeWidth: isZoomed ? 4 : 3 }}
+                                  transition={{ duration: 0.45, ease: "easeOut" }}
                                   className="transition-all duration-200 group-hover/det:stroke-[4px]"
                                 />
                               )}
