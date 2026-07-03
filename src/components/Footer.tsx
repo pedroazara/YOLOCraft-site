@@ -1,6 +1,12 @@
 import { Activity } from 'lucide-react';
 
-export default function Footer() {
+import { ActiveTab } from '../types';
+
+interface FooterProps {
+  onTabChange?: (tab: ActiveTab) => void;
+}
+
+export default function Footer({ onTabChange }: FooterProps) {
   const currentYear = new Date().getFullYear();
   
   return (
@@ -21,27 +27,24 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-wrap justify-center gap-6 font-mono text-[11px]">
-          <a 
-            href="#docs" 
-            className="text-gray-400 hover:text-primary transition-colors uppercase tracking-wider"
-            onClick={(e) => { e.preventDefault(); alert("Abrindo a documentação do modelo YOLO-VOXEL v4.0"); }}
+          <button 
+            onClick={() => {
+              if (onTabChange) {
+                onTabChange('criadores');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className="text-gray-400 hover:text-primary transition-colors uppercase tracking-wider font-mono cursor-pointer bg-transparent border-none p-0 outline-none"
           >
-            DOCUMENTAÇÃO
-          </a>
+            CRIADORES
+          </button>
           <a 
-            href="https://github.com" 
+            href="https://github.com/pedroazara/YOLOCraft" 
             target="_blank" 
             rel="noreferrer" 
             className="text-gray-400 hover:text-primary transition-colors uppercase tracking-wider"
           >
             GITHUB
-          </a>
-          <a 
-            href="#privacidade" 
-            className="text-gray-400 hover:text-primary transition-colors uppercase tracking-wider"
-            onClick={(e) => { e.preventDefault(); alert("Políticas de privacidade do bloco de dados YOLOCraft"); }}
-          >
-            PRIVACIDADE
           </a>
         </div>
       </div>

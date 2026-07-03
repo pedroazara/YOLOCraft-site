@@ -327,6 +327,7 @@ const dictionary: { [key: string]: { pt: string; en: string } } = {
   'nav_bestiary': { pt: 'ENTIDADES', en: 'BESTIARY' },
   'nav_stats': { pt: 'ESTATISTICAS', en: 'STATISTICS' },
   'nav_how_it_works': { pt: 'COMO FUNCIONA', en: 'HOW IT WORKS' },
+  'nav_creators': { pt: 'CRIADORES', en: 'CREATORS' },
   'logged_in_as': { pt: 'Logado como:', en: 'Logged in as:' },
   'logout': { pt: 'Deseja deslogar da conta YOLOCraft?', en: 'Do you want to log out of the YOLOCraft account?' },
   'enter_email': { pt: 'Digite seu e-mail de explorador:', en: 'Enter your explorer email:' },

@@ -832,7 +832,7 @@ python -m src.detector_gui`
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* YOLO26s - 16 Classes (Em Treinamento) */}
+                  {/* YOLO26s - 16 Classes (Consolidado) */}
                   <div className="p-5 bg-[#141414] border border-primary/20 relative rounded-sm space-y-4">
                     <div className="corner-bracket-tl"></div>
                     <div className="corner-bracket-tr"></div>
@@ -841,29 +841,29 @@ python -m src.detector_gui`
                     
                     <div className="flex justify-between items-center border-b border-[#222222] pb-2">
                       <span className="font-display text-sm font-bold text-primary tracking-wider">YOLO26s (Apresentacao)</span>
-                      <span className="font-mono text-[9px] px-1.5 py-0.5 bg-[#1e3f22]/30 text-primary border border-primary/20 animate-pulse">EM TREINO</span>
+                      <span className="font-mono text-[9px] px-1.5 py-0.5 bg-[#1e3f22]/30 text-primary border border-primary/20">CONSOLIDADO</span>
                     </div>
                     
                     <div className="font-sans text-xs text-gray-400 leading-relaxed">
-                      Treinado no subconjunto curado de 16 classes. Métricas parciais consolidadas:
+                      Treinado no subconjunto curado de 16 classes por 100 épocas. Métricas finais consolidadas:
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-black/50 p-2.5 border border-[#222222]">
                         <span className="font-mono text-[9px] text-gray-500 block">Precision</span>
-                        <span className="font-display text-base text-white font-bold">~ 0.98</span>
+                        <span className="font-display text-base text-white font-bold">0.9906</span>
                       </div>
                       <div className="bg-black/50 p-2.5 border border-[#222222]">
                         <span className="font-mono text-[9px] text-gray-500 block">Recall</span>
-                        <span className="font-display text-base text-white font-bold">~ 0.98</span>
+                        <span className="font-display text-base text-white font-bold">0.9878</span>
                       </div>
                       <div className="bg-black/50 p-2.5 border border-[#222222]">
                         <span className="font-mono text-[9px] text-gray-500 block">mAP50</span>
-                        <span className="font-display text-base text-primary font-bold">~ 0.99</span>
+                        <span className="font-display text-base text-primary font-bold">0.9935</span>
                       </div>
                       <div className="bg-black/50 p-2.5 border border-[#222222]">
                         <span className="font-mono text-[9px] text-gray-500 block">mAP50-95</span>
-                        <span className="font-display text-base text-white font-bold">~ 0.95</span>
+                        <span className="font-display text-base text-white font-bold">0.9679</span>
                       </div>
                     </div>
                   </div>

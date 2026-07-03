@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ActiveTab } from '../types';
-import { Compass, Skull, HelpCircle, Menu, X } from 'lucide-react';
+import { Compass, Skull, HelpCircle, Menu, X, Users } from 'lucide-react';
 import YolocraftLogo from './YolocraftLogo';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLanguage } from '../context/LanguageContext';
@@ -169,6 +169,39 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
               />
             )}
           </button>
+
+          <button
+            onClick={() => setActiveTab('criadores')}
+            onMouseEnter={() => setHoveredTab('criadores')}
+            onMouseLeave={() => setHoveredTab(null)}
+            className={`relative flex items-center gap-2 px-3 lg:px-4 py-2.5 text-xs lg:text-sm select-none cursor-pointer whitespace-nowrap transition-all duration-100 ${
+              activeTab === 'criadores'
+                ? 'text-primary'
+                : 'text-[#aaaaaa] hover:text-white'
+            }`}
+          >
+            <Users className="w-4 h-4 flex-shrink-0 relative top-[1px]" />
+            <span className="font-minecraft tracking-wider">{t('nav_creators')}</span>
+
+            {activeTab === 'criadores' && (
+              <motion.div
+                layoutId="active-indicator"
+                className="absolute inset-0 bg-[#1e3f22]/60 border-2 border-t-[#4ade80] border-l-[#4ade80] border-r-[#155e2f] border-b-[#155e2f] -z-20 shadow-[2px_2px_0px_#000000]"
+                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
+              />
+            )}
+
+            {hoveredTab === 'criadores' && activeTab !== 'criadores' && (
+              <motion.div
+                layoutId="hover-indicator"
+                className="absolute inset-0 bg-[#2c2c2c] border-2 border-t-[#8b8b8b] border-l-[#8b8b8b] border-r-[#444444] border-b-[#444444] -z-10 shadow-[2px_2px_0px_#000000]"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 450, damping: 28 }}
+              />
+            )}
+          </button>
         </nav>
 
         {/* Right Action buttons (Language switcher + Mobile Menu Toggle) */}
@@ -264,6 +297,21 @@ export default function Header({ activeTab, setActiveTab, onEnterClick, userEmai
               >
                 <HelpCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{t('nav_how_it_works')}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('criadores');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`relative flex items-center gap-3 px-4 py-3 font-minecraft text-sm select-none cursor-pointer w-full text-left transition-all duration-100 ${
+                  activeTab === 'criadores'
+                    ? 'text-primary bg-[#1e3f22]/30 border-l-4 border-primary'
+                    : 'text-[#aaaaaa] hover:text-white bg-transparent border-l-4 border-transparent'
+                }`}
+              >
+                <Users className="w-4 h-4 flex-shrink-0" />
+                <span>{t('nav_creators')}</span>
               </button>
             </motion.div>
           )}

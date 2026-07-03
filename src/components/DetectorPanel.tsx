@@ -735,6 +735,32 @@ export default function DetectorPanel({
       
       setScanProgress(20);
 
+      // Create a small, compressed version of the image to store in the scan history
+      // This ensures that the image doesn't get corrupted (via transient Blob URL) when reloading the page
+      let historyImageUrl = imageUrl;
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const maxDim = 500; // Keep it compact for localStorage
+        let wScale = 1;
+        let hScale = 1;
+        if (originalW > maxDim || originalH > maxDim) {
+          if (originalW > originalH) {
+            wScale = maxDim / originalW;
+            hScale = wScale;
+          } else {
+            hScale = maxDim / originalH;
+            wScale = hScale;
+          }
+        }
+        canvas.width = originalW * wScale;
+        canvas.height = originalH * hScale;
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        historyImageUrl = canvas.toDataURL('image/jpeg', 0.7); // 70% quality compressed JPEG
+      } catch (e) {
+        console.error('Failed to create persistent image URL:', e);
+      }
+
       if (serverMode === 'real') {
         if (targetMode === 'comparative') {
           setScanStepText('CONECTANDO ENGINES COMPARATIVAS...');
@@ -811,12 +837,12 @@ export default function DetectorPanel({
             });
             
             setApiData(samRes);
-            finishScan(imageUrl, file.name, samRes);
+            finishScan(historyImageUrl, file.name, samRes);
           } catch (err: any) {
             console.error(err);
             setErrorMessage(`Falha na API comparativa: ${err.message || 'Erro de conexão'}. Ativando simulação local.`);
             setServerMode('simulated');
-            simulateComparativeLocal(imageUrl, file.name, originalW, originalH);
+            simulateComparativeLocal(historyImageUrl, file.name, originalW, originalH);
           }
         } else {
           setScanStepText('CONECTANDO AO SERVIDOR DE IA...');
@@ -845,12 +871,12 @@ export default function DetectorPanel({
             setScanStepText('DECODIFICANDO SEGMENTAÇÃO...');
             
             setApiData(data);
-            finishScan(imageUrl, file.name, data);
+            finishScan(historyImageUrl, file.name, data);
           } catch (err: any) {
             console.error(err);
             setErrorMessage(`Falha na API: ${err.message || 'Erro de conexão'}. Alternando para modo de simulação local para esta imagem.`);
             setServerMode('simulated');
-            simulateLocalScan(imageUrl, file.name, originalW, originalH);
+            simulateLocalScan(historyImageUrl, file.name, originalW, originalH);
           }
         }
       } else {
@@ -860,9 +886,9 @@ export default function DetectorPanel({
           setScanStepText('SIMULANDO RESPOSTA DA REDE NEURAL...');
           setTimeout(() => {
             if (targetMode === 'comparative') {
-              simulateComparativeLocal(imageUrl, file.name, originalW, originalH);
+              simulateComparativeLocal(historyImageUrl, file.name, originalW, originalH);
             } else {
-              simulateLocalScan(imageUrl, file.name, originalW, originalH);
+              simulateLocalScan(historyImageUrl, file.name, originalW, originalH);
             }
           }, 400);
         }, 300);
@@ -1512,10 +1538,6 @@ export default function DetectorPanel({
       {/* Hero Header Section */}
       <section className="relative flex flex-col lg:flex-row items-center justify-between gap-12 py-4">
         <div className="w-full lg:w-3/5 space-y-6">
-          <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 border border-primary/30 font-mono text-[10px] font-bold text-primary uppercase tracking-widest">
-            <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-            <span>{t('det_subtitle')}</span>
-          </div>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white font-bold leading-none tracking-[0.12em] select-none uppercase">
             {t('det_title')}
           </h1>
@@ -2007,7 +2029,7 @@ export default function DetectorPanel({
                                   step="0.05"
                                   value={marginRatio} 
                                   onChange={(e) => setMarginRatio(parseFloat(e.target.value))}
-                                  className="w-full accent-primary bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
+                                  className="mc-range mc-range-primary"
                                 />
                                 <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
                                   {language === 'pt' ? 'Margem extra para o recorte do enquadramento' : 'Extra framing margin scale'}
@@ -2029,7 +2051,7 @@ export default function DetectorPanel({
                                   step="0.1"
                                   value={polyEpsilon} 
                                   onChange={(e) => setPolyEpsilon(parseFloat(e.target.value))}
-                                  className="w-full accent-primary bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
+                                  className="mc-range mc-range-primary"
                                 />
                                 <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
                                   {language === 'pt' ? 'Simplificacao de vertices (maior = poligono reto)' : 'Simplifies geometry (higher = straighter)'}
@@ -2054,7 +2076,7 @@ export default function DetectorPanel({
                                 step="1"
                                 value={grabcutIterations} 
                                 onChange={(e) => setGrabcutIterations(parseInt(e.target.value))}
-                                className="w-full accent-[#F43F5E] bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
+                                className="mc-range mc-range-red"
                               />
                               <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
                                 {language === 'pt' ? 'Iteracoes do otimizador de foreground' : 'Foreground segmenter processing cycles'}
@@ -2078,7 +2100,7 @@ export default function DetectorPanel({
                                 step="0.1"
                                 value={hsvThreshold} 
                                 onChange={(e) => setHsvThreshold(parseFloat(e.target.value))}
-                                className="w-full accent-secondary bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
+                                className="mc-range mc-range-secondary"
                               />
                               <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
                                 {language === 'pt' ? 'Filtro de saturacao/matiz (menor = sensivel)' : 'Color filter sensitivity (lower = sensitive)'}
@@ -2102,7 +2124,7 @@ export default function DetectorPanel({
                                 step="0.01"
                                 value={watershedFgRatio} 
                                 onChange={(e) => setWatershedFgRatio(parseFloat(e.target.value))}
-                                className="w-full accent-amber-500 bg-[#222222] h-2 border border-[#333333] cursor-pointer appearance-none"
+                                className="mc-range mc-range-amber"
                               />
                               <span className="font-mono text-[7.5px] text-gray-500 block leading-tight">
                                 {language === 'pt' ? 'Fator de separacao de pixels watershed' : 'Watershed pixel separation constraint'}
@@ -2605,7 +2627,7 @@ export default function DetectorPanel({
                   max="95" 
                   value={confidenceThreshold} 
                   onChange={(e) => setConfidenceThreshold(parseInt(e.target.value))}
-                  className="w-full accent-primary bg-[#222222] h-1"
+                  className="mc-range mc-range-primary"
                 />
                 <span className="font-mono text-[8px] text-gray-500 block">{language === 'pt' ? 'Esconde deteccoes abaixo desta probabilidade de acerto' : 'Hides detections below this probability threshold'}</span>
               </div>
